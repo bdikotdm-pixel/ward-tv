@@ -95,7 +95,7 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 
 .sched{background:var(--panel);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.4) calc(var(--u)*1.8);flex:1;min-height:0;display:flex;flex-direction:column}
 .h{font-size:calc(var(--u)*2.6);font-weight:600;color:var(--ink);margin-bottom:calc(var(--u)*.8);display:flex;align-items:baseline;gap:calc(var(--u)*1)}
-.rows{flex:1;min-height:0;overflow:hidden;position:relative}
+.rows{flex:1;min-height:0;overflow:hidden;position:relative;padding:calc(var(--u)*.8) calc(var(--u)*1.1)}
 .r{--c:var(--other);display:grid;grid-template-columns:calc(var(--u)*7.2) calc(var(--u)*3.2) minmax(0,1fr);align-items:stretch}
 .r .t{align-self:center;font-size:calc(var(--u)*2.3);font-weight:600;text-align:center}
 .r .rail{position:relative}
@@ -115,7 +115,14 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 .r.past{opacity:.4}
 .r.past .rail i{background:var(--line);border-color:var(--line)}
 .r.off,.p.hide{display:none}
-.r.now .it{background:var(--amber-soft);box-shadow:inset 0 0 0 calc(var(--u)*.15) rgba(227,155,45,.45);padding-block:calc(var(--u)*1.1)}
+.r.now .it{background:transparent;padding-block:calc(var(--u)*1.1)}
+/* מסגרת זוהרת סביב השעה והפעילות של עכשיו (או הבאה בתור, אם כרגע אין פעילות) */
+.r.glow,.r.soon{position:relative}
+.r.glow::after,.r.soon::after{content:"";position:absolute;inset:calc(var(--u)*.2) calc(var(--u)*-.8);border-radius:calc(var(--u)*1.6);pointer-events:none}
+.r.glow::after{background:rgba(255,244,226,.55);border:calc(var(--u)*.25) solid var(--amber);box-shadow:0 0 calc(var(--u)*1.6) rgba(227,155,45,.6),inset 0 0 calc(var(--u)*1) rgba(227,155,45,.25);animation:halo 2.8s ease-in-out infinite;z-index:0}
+.r.soon::after{border:calc(var(--u)*.2) solid rgba(227,155,45,.75);box-shadow:0 0 calc(var(--u)*1.2) rgba(227,155,45,.4);animation:halo 3.2s ease-in-out infinite}
+.r.glow>*,.r.soon>*{position:relative;z-index:1}
+@keyframes halo{50%{box-shadow:0 0 calc(var(--u)*2.6) rgba(227,155,45,.85),inset 0 0 calc(var(--u)*1) rgba(227,155,45,.3)}}
 .r.now .ti{font-size:calc(var(--u)*2.6);font-weight:600}
 .r.now .ic{width:calc(var(--u)*4.4);height:calc(var(--u)*4.4);font-size:calc(var(--u)*2.4)}
 .r.now .t{font-size:calc(var(--u)*2.6)}
@@ -284,19 +291,19 @@ const ALL_LANGS=['he','ar','en'];
 
 /* ---------- מילון ---------- */
 const L={
-he:{sched:'סדר היום',now:'עכשיו',until:'עד',noSched:'אין פעילויות מתוכננות להיום',head:'מנהל/ת המחלקה',secretary:'מזכירת המחלקה',team:'הצוות במחלקה היום',
+he:{sched:'סדר היום',now:'עכשיו',until:'עד',noSched:'אין פעילויות מתוכננות להיום',head:'מנהל/ת המחלקה',secretary:'מזכירת המחלקה',team:'צוות המחלקה',
   noTeam:'הצוות יעודכן בקרוב',free:'זמן חופשי',freeSub:'אפשר לנוח, לקרוא או לפנות לצוות',next:'אחר כך',done:'סיימנו את סדר היום',
   nextMeal:'הארוחה הבאה',nextMed:'התרופות הבאות',tomorrow:'מחר',visits:'שעות ביקור',morning:'בוקר',evening:'ערב',openNow:'פתוח עכשיו',phone:'טלפון המחלקה',
   msg:'הודעה',imp:'הודעה חשובה',shIn:'כניסת שבת',shOut:'יציאת שבת',shabbat:'שבת שלום',morningT:'בוקר טוב',morningMsg:'יום חדש מתחיל. הצוות כאן איתכם.',night:'לילה טוב',nightMsg:'הגיע הזמן לנוח. הצוות כאן איתכם כל הלילה.',
   rest:'שעות מנוחה',wake:'השכמה',sleep:'שינה',vM:'ביקורים – בוקר',vE:'ביקורים – ערב',sleepRow:'לילה טוב',demo:'מצב הדגמה',offline:'אין חיבור – מוצג מידע אחרון',
   tod:['בוקר','צהריים','אחר הצהריים','ערב','לילה'],inM:d=>`בעוד ${d} דק׳`,inH:(h,m)=>`בעוד ${h}:${m} ש׳`},
-ar:{sched:'برنامج اليوم',now:'الآن',until:'حتى',noSched:'لا توجد فعاليات مخططة اليوم',head:'مدير/ة القسم',secretary:'سكرتيرة القسم',team:'الطاقم في القسم اليوم',
+ar:{sched:'برنامج اليوم',now:'الآن',until:'حتى',noSched:'لا توجد فعاليات مخططة اليوم',head:'مدير/ة القسم',secretary:'سكرتيرة القسم',team:'طاقم القسم',
   noTeam:'سيتم تحديث الطاقم قريباً',free:'وقت حر',freeSub:'يمكنكم الراحة أو القراءة أو التوجه للطاقم',next:'بعد ذلك',done:'انتهى برنامج اليوم',
   nextMeal:'الوجبة القادمة',nextMed:'الأدوية القادمة',tomorrow:'غداً',visits:'ساعات الزيارة',morning:'صباحاً',evening:'مساءً',openNow:'مفتوحة الآن',phone:'هاتف القسم',
   msg:'رسالة',imp:'رسالة مهمة',shIn:'دخول السبت',shOut:'خروج السبت',shabbat:'سبت هادئ',morningT:'صباح الخير',morningMsg:'يوم جديد يبدأ. الطاقم هنا معكم.',night:'تصبحون على خير',nightMsg:'حان وقت الراحة. الطاقم هنا معكم طوال الليل.',
   rest:'ساعات الراحة',wake:'صباحاً',sleep:'النوم',vM:'زيارة – صباحاً',vE:'زيارة – مساءً',sleepRow:'تصبحون على خير',demo:'وضع تجريبي',offline:'لا يوجد اتصال – تُعرض آخر معلومات',
   tod:['الصباح','الظهر','بعد الظهر','المساء','الليل'],inM:d=>`بعد ${d} د`,inH:(h,m)=>`بعد ${h}:${m} س`},
-en:{sched:"Today's schedule",now:'Now',until:'until',noSched:'No activities planned today',head:'Head of department',secretary:'Ward secretary',team:'On the ward today',
+en:{sched:"Today's schedule",now:'Now',until:'until',noSched:'No activities planned today',head:'Head of department',secretary:'Ward secretary',team:'Ward team',
   noTeam:'The team will be updated soon',free:'Free time',freeSub:'You can rest, read or talk to the staff',next:'Next',done:"That's all for today",
   nextMeal:'Next meal',nextMed:'Next medication',tomorrow:'Tomorrow',visits:'Visiting hours',morning:'Morning',evening:'Evening',openNow:'Open now',phone:'Ward phone',
   msg:'Message',imp:'Important',shIn:'Shabbat begins',shOut:'Shabbat ends',shabbat:'Shabbat Shalom',morningT:'Good morning',morningMsg:'A new day is starting. The staff are here with you.',night:'Good night',nightMsg:'Time to rest. The staff are here with you all night.',
@@ -542,7 +549,8 @@ function renderSched(){
     if(r.cat==='meal'||r.cat==='med')cls+=' key';
     if(r.e<=m)cls+=' past';
     if(idx===D.cur){cls+=' now';b=t('now');}
-    else if(idx===D.next){const d=r.s-m;if(d<=120)b=inMins(d);}
+    else if(idx===D.next){const d=r.s-m;if(d<=120)b=inMins(d);if(D.cur<0)cls+=' soon';}
+    if(idx===D.cur)cls+=' glow';
     const now=idx===D.cur;
     const sub=now&&r.endTime?`<div class="sub">${t('until')} <span class="num">${esc(r.endTime)}</span></div><div class="bar"><i style="width:${Math.min(100,Math.round((m-r.s)/Math.max(1,r.e-r.s)*100))}%"></i></div>`:'';
     return `<div class="${cls}" style="--c:${col(r)}"><div class="t num">${esc(r.time)}</div><div class="rail"><i></i></div><div class="it"><span class="ic">${icon(r)}</span><div class="tx"><div class="ti">${title(r)}</div>${sub}</div>${b?`<span class="b">${b}</span>`:''}</div></div>`;
@@ -649,21 +657,25 @@ function rotatePage(){
 
 /* ---------- הודעה על כל המסך לכמה שניות ---------- */
 let flashIdx=0,flashOn=false;
+// כמה זמן הודעה/תמונה נשארת על המסך, וכל כמה זמן היא מופיעה (מההגדרות ב-admin)
+const flashSecs=()=>Math.max(3,+(D&&D.S.flashSeconds)||CFG.FLASH_SECONDS);
+const flashEvery=()=>Math.max(15,+(D&&D.S.flashEvery)||CFG.FLASH_EVERY);
+function interLoop(){interlude();setTimeout(interLoop,flashEvery()*1000);}
 /* ---------- תמונות על כל המסך ---------- */
 let pIdx=0,interKind=0;
 function showPhotos(){
   if(flashOn||!D||!D.images.length)return false;
-  const n=Math.min(CFG.PHOTOS_PER_ROUND,D.images.length),list=[];
+  const n=1,list=[];
   for(let k=0;k<n;k++)list.push(D.images[(pIdx+k)%D.images.length]);
   pIdx=(pIdx+n)%D.images.length;
-  const el=$('pshow'),dur=n*CFG.PHOTO_SECONDS;
+  const el=$('pshow'),dur=flashSecs();
   el.innerHTML=list.map((p,k)=>{const raw=rawUrl(p.url),cap=tr(p,'caption'),u=raw||p.url;
     return `<div class="ps${k===0?' on':''}"><div class="bg" style="background-image:url('${esc(u)}')"></div><img src="${esc(p.url)}" data-raw="${esc(raw)}" onerror="if(this.dataset.raw&&this.src!==this.dataset.raw)this.src=this.dataset.raw" alt="">${cap?`<div class="cap"><span>${esc(cap)}</span></div>`:''}</div>`;}).join('')+
     `<div class="pclock num">${hm(new Date())}</div><div class="pbar"><i></i></div>`;
   const bar=el.querySelector('.pbar i');requestAnimationFrame(()=>{bar.style.transition=`width ${dur}s linear`;bar.style.width='100%';});
   flashOn=true;el.classList.add('on');
   const ps=el.querySelectorAll('.ps');let i=0;
-  const tm=setInterval(()=>{if(i>=ps.length-1)return;ps[i].classList.remove('on');i++;ps[i].classList.add('on');},CFG.PHOTO_SECONDS*1000);
+  const tm=setInterval(()=>{if(i>=ps.length-1)return;ps[i].classList.remove('on');i++;ps[i].classList.add('on');},dur*1000);
   setTimeout(()=>{clearInterval(tm);el.classList.remove('on');setTimeout(()=>{flashOn=false;el.innerHTML='';},1300);},dur*1000);
   return true;
 }
@@ -684,9 +696,9 @@ function showFlash(){
   fx.textContent=tx;
   let fs=tx.length<30?8:tx.length<70?6.5:tx.length<140?5:4;fx.style.fontSize=`calc(var(--u)*${fs})`;
   const box=fx.parentElement;while((fx.scrollHeight>box.clientHeight||fx.scrollWidth>box.clientWidth)&&fs>2){fs-=.2;fx.style.fontSize=`calc(var(--u)*${fs.toFixed(1)})`;}
-  const bar=$('fbar');bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition=`width ${CFG.FLASH_SECONDS}s linear`;bar.style.width='100%';
+  const bar=$('fbar');bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition=`width ${flashSecs()}s linear`;bar.style.width='100%';
   flashOn=true;f.classList.add('on');
-  setTimeout(()=>{f.classList.remove('on');setTimeout(()=>flashOn=false,1200);},CFG.FLASH_SECONDS*1000);
+  setTimeout(()=>{f.classList.remove('on');setTimeout(()=>flashOn=false,1200);},flashSecs()*1000);
 }
 
 /* ---------- ציור ---------- */
@@ -737,7 +749,7 @@ function rotateQuote(){
   setInterval(rotateQuote,CFG.QUOTE_SECONDS*1000);
   showPage(0);
   setInterval(rotatePage,CFG.PAGE_SECONDS*1000);
-  setTimeout(()=>{interlude();setInterval(interlude,CFG.FLASH_EVERY*1000);},20000);
+  setTimeout(interLoop,20000);
   setInterval(async()=>{await loadData();renderAll();},CFG.REFRESH_SECONDS*1000);
   setInterval(()=>{loadHebDate();loadWeather();},30*60*1000);
   setInterval(loadShabbat,6*3600*1000);
