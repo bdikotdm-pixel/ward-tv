@@ -4,8 +4,8 @@
 // 2) מחלקות נוספות (לא חובה): הריצו שוב את setup.html עם "קוד מחלקה"
 //    והדביקו כל שורה שמתקבלת בתוך WARDS.
 window.CONFIG = {
-  OWNER: "",              // שם המשתמש ב-GitHub
-  REPO: "",               // שם ה-repo
+  OWNER: "bdikotdm-pixel",              // שם המשתמש ב-GitHub
+  REPO: "ward-tv",               // שם ה-repo
   BRANCH: "main",
   TOKEN_ENC: {"s":"ihWbXleck1Czvnk3HrBWYA==","i":"RMrXoamV47udIt58","c":"oO/GK0uORZMqT4+u3An5/LPk7HBwop7eJrDjiYVVvd9jJp0Ev1h8P7aLorsD8jd/IL1ms5Bd/2nm0f9ZquK/U1tLHFe2Q+YxNhDjhhZviqiLqywFjh1BZvHk2yKnMBjWN/CY82KZTfazrF5QQQ==","n":310000},,          // מתקבל מ-setup.html (לא מדביקים כאן את הטוקן עצמו!)
 
