@@ -24,7 +24,7 @@ button{font:inherit;background:#1d6a9e;color:#fff;border:0;border-radius:10px;pa
   <label>שם ה-repo<input id="repo"></label>
   <label>הטוקן (Fine-grained token שמתחיל ב-github_pat_)<input id="tok" type="password"></label>
   <div class="note">🏥 <b>למחלקה נוספת:</b> מלאו גם את שני השדות הבאים. להגדרה הראשית (המחלקה הראשונה) השאירו אותם ריקים.</div>
-  <label>קוד המחלקה באנגלית (אותיות קטנות/מספרים, למשל a או ward2)<input id="wid"></label>
+  <label>קוד המחלקה באנגלית (אותיות קטנות/מספרים, למשל a או ward2). לקוד של הניהול הכללי כתבו: central<input id="wid"></label>
   <label>שם המחלקה (כפי שיופיע ברשימת המחלקות)<input id="wname" style="direction:rtl"></label>
   <label>קוד צוות (מה שהצוות יקליד בכניסה – לפחות 8 תווים)<input id="code" type="password"></label>
   <label>קוד צוות שוב<input id="code2" type="password"></label>
@@ -57,7 +57,10 @@ $('go').onclick=async()=>{
     if(!(j.permissions&&j.permissions.push))throw 'לטוקן אין הרשאת כתיבה (Contents: Read and write)';
     const enc=await encrypt(tok,code);
     const wid=$('wid').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
-    if(wid){
+    if(wid==='central'){
+      $('out').value=`CENTRAL_TOKEN_ENC: ${JSON.stringify(enc)},`;
+      m.className='ok'; m.textContent='✓ הטוקן תקין. הדביקו את השורה הזו ב-config.js (קוד נפרד לניהול הכללי).';
+    }else if(wid){
       $('out').value=`  "${wid}": { name: ${JSON.stringify($('wname').value.trim()||wid)}, TOKEN_ENC: ${JSON.stringify(enc)} },`;
       m.className='ok'; m.textContent='✓ הטוקן תקין. ב-config.js הדביקו את השורה הזו בתוך WARDS: { ... } (ראו README). הקישורים של המחלקה יהיו עם ?ward='+wid;
     }else{

@@ -113,7 +113,22 @@ const fmt=s=>s?s.split('-').reverse().slice(0,2).join('/'):'';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}};
-let PIN='',WHO='',ITEMS=[],TAB='att',EDIT=null,BUSY=false;
+const CENTRAL=!!W.CFG.CENTRAL;
+let PIN='',WHO='',ITEMS=[],TAB=CENTRAL?'message':'att',EDIT=null,BUSY=false;
+/* ---------- ניהול כללי: באילו מחלקות להציג ---------- */
+const WLIST=W.CFG.WARD_LIST||[['main','המחלקה הראשית']];
+function wardsHTML(it){
+  const sel=it.wards&&it.wards.length?it.wards:['*'],all=sel.includes('*');
+  return `<fieldset class="when wards"><legend>🏥 באילו מחלקות להציג</legend><div class="seg">
+    <label><input type="checkbox" name="wards" value="*" ${all?'checked':''}><b>כל המחלקות</b></label>
+    ${WLIST.map(([k,n])=>`<label><input type="checkbox" name="wards" value="${esc(k)}" ${!all&&sel.includes(k)?'checked':''}>${esc(n)}</label>`).join('')}</div></fieldset>`;
+}
+function readWards(f){const v=[...f.querySelectorAll('input[name=wards]:checked')].map(x=>x.value);return !v.length||v.includes('*')?['*']:v;}
+function wardsLabel(i){const w=i.wards||['*'];return w.includes('*')?'כל המחלקות':w.map(k=>(WLIST.find(x=>x[0]===k)||[k,k])[1]).join(', ');}
+// "כל המחלקות" מבטל בחירה של מחלקות בודדות, ולהפך
+document.addEventListener('change',e=>{const t=e.target;if(t.name!=='wards')return;const box=t.closest('fieldset');
+  if(t.value==='*'&&t.checked)box.querySelectorAll('input[name=wards]').forEach(x=>{if(x!==t)x.checked=false;});
+  else if(t.checked){const a=box.querySelector('input[value="*"]');if(a)a.checked=false;}});
 
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600);}
 async function run(fn,ok){
@@ -206,6 +221,7 @@ function readFields(f,T,base){
     ['ar','en'].forEach(l=>{const e=f.elements[k+'_'+l];if(e)base[k+'_'+l]=e.value.trim();});
   });
   if(T.when)Object.assign(base,readWhen(f));
+  if(CENTRAL)base.wards=readWards(f);
   return base;
 }
 
@@ -215,11 +231,11 @@ function viewList(type){
   return `<form class="card" id="f">
     <h3>${it.id?'עריכת':'הוספת'} ${T.title}</h3>
     ${T.fields.map(f=>fieldHTML(f,it)).join('')}
-    ${T.when?whenHTML(it):''}
+    ${T.when?whenHTML(it):''}${CENTRAL?wardsHTML(it):''}
     <div class="row"><button class="btn" type="submit">${it.id?'שמירת שינויים':'הוספה'}</button>${it.id?'<button class="btn sec" type="button" id="cancel">ביטול</button>':''}</div>
   </form>
   <div class="card"><h3>${T.tab} (${list.length})</h3><div class="items">
-    ${list.map(i=>`<div class="item"><div class="tx">${T.sum(i)}</div><button class="btn sec sm" data-edit="${esc(i.id)}">עריכה</button><button class="btn no sm" data-del="${esc(i.id)}">מחיקה</button></div>`).join('')||'<div class="meta">אין עדיין פריטים</div>'}
+    ${list.map(i=>`<div class="item"><div class="tx">${T.sum(i)}${CENTRAL?`<div class="meta">🏥 ${esc(wardsLabel(i))}</div>`:''}</div><button class="btn sec sm" data-edit="${esc(i.id)}">עריכה</button><button class="btn no sm" data-del="${esc(i.id)}">מחיקה</button></div>`).join('')||'<div class="meta">אין עדיין פריטים</div>'}
   </div></div>`;
 }
 function bindList(type){
@@ -238,17 +254,17 @@ function bindList(type){
 function viewImages(){
   const T=TYPES.image,list=by('image').slice().reverse();
   if(EDIT&&EDIT.type==='image')return `<form class="card" id="f"><h3>עריכת תמונה</h3><img src="${esc(W.imgSrc(EDIT.url))}" style="max-width:100%;border-radius:10px">
-    ${T.fields.map(f=>fieldHTML(f,EDIT)).join('')}${whenHTML(EDIT)}
+    ${T.fields.map(f=>fieldHTML(f,EDIT)).join('')}${whenHTML(EDIT)}${CENTRAL?wardsHTML(EDIT):''}
     <div class="row"><button class="btn" type="submit">שמירה</button><button class="btn sec" type="button" id="cancel">ביטול</button></div></form>`;
   return `<div class="card"><h3>העלאת תמונות</h3>
     <label class="drop" id="drop"><b>📷 בחרו תמונות (אפשר כמה ביחד)</b><span class="meta">התמונות מוקטנות אוטומטית ומוצגות במסך מלא בטלוויזיה</span>
       <input type="file" id="files" accept="image/*" multiple hidden></label>
-    <form id="upf" data-rec="daily" data-valid="perm">${whenHTML({rec:'daily'})}</form>
+    <form id="upf" data-rec="daily" data-valid="perm">${whenHTML({rec:'daily'})}${CENTRAL?wardsHTML({}):''}</form>
     <div id="upst" hidden><div class="meta" id="uptx"></div><div class="prog"><i id="upbar"></i></div></div>
   </div>
   <div class="card"><h3>התמונות (${list.length})</h3>
     <div class="gal">${list.map(i=>`<div class="ph${activeOn(i,new Date())?'':' off'}"><img src="${esc(W.imgSrc(i.url))}" loading="lazy">
-      <div class="pb"><div class="meta">${esc(i.caption||'')} ${whenLabel(i)}</div>
+      <div class="pb"><div class="meta">${esc(i.caption||'')} ${whenLabel(i)}${CENTRAL?' · 🏥 '+esc(wardsLabel(i)):''}</div>
       <div class="row"><button class="btn sec sm" data-edit="${esc(i.id)}">עריכה</button><button class="btn no sm" data-delimg="${esc(i.id)}">מחיקה</button></div></div></div>`).join('')||'<div class="meta">עוד אין תמונות</div>'}</div>
   </div>`;
 }
@@ -273,7 +289,7 @@ function bindImages(){
 }
 async function upload(files){
   if(!files.length||BUSY)return;
-  let when;try{when=readWhen($('upf'));}catch(e){toast(e);return;}
+  let when;try{when=readWhen($('upf'));if(CENTRAL)when.wards=readWards($('upf'));}catch(e){toast(e);return;}
   BUSY=true;$('upst').hidden=false;
   const done=[],fail=[];
   for(let i=0;i<files.length;i++){
@@ -339,7 +355,8 @@ function bindAtt(){
 const SFIELDS=[['wardName','שם המחלקה','text'],['phone','טלפון המחלקה','tel'],['headName','מנהל/ת המחלקה','text'],['secretaryName','שם המזכירה','text'],
   ['visitMorning','שעות ביקור בוקר (למשל 10:00-12:00)','time-range'],['visitEvening','שעות ביקור ערב (למשל 16:00-19:00)','time-range'],['visitNote','הערה לשעות הביקור (למשל: הביקורים בחדר האוכל)','text'],
   ['sleepStart','שעת "לילה טוב" (מסך לילה)','time'],['wakeTime','שעת השכמה (סוף מסך לילה)','time'],['nightMessage','הודעת לילה','textarea'],
-  ['morningStart','מסך "בוקר טוב" – משעה','time'],['morningEnd','מסך "בוקר טוב" – עד שעה','time'],['morningMessage','הודעת בוקר','textarea']];
+  ['morningStart','מסך "בוקר טוב" – משעה','time'],['morningEnd','מסך "בוקר טוב" – עד שעה','time'],['morningMessage','הודעת בוקר','textarea'],
+  ['flashSeconds','כמה שניות הודעה / תמונה נשארת על כל המסך (למשל 9)','number'],['flashEvery','כל כמה שניות מופיעה הודעה / תמונה על כל המסך (למשל 50)','number']];
 function checkinLink(withCode){
   const base=W.CFG.withWard(location.href.replace(/admin\.html.*$/,'checkin.html').replace(/[?#].*$/,''));
   return withCode&&PIN?`${base}#k=${encodeURIComponent(PIN)}`:base;
@@ -372,11 +389,12 @@ function bindSettings(){
 }
 
 /* ---------- ניווט ---------- */
-const TABS=[['att','👥 נוכחות היום'],['schedule','📋 סדר יום'],['message','📣 הודעות'],['image','🖼️ תמונות'],['staff','🧑‍⚕️ צוות'],['quote','🌿 משפטים'],['settings','⚙️ הגדרות']];
+const TABS=CENTRAL?[['message','📣 הודעות'],['image','🖼️ תמונות'],['schedule','📋 אירועים בסדר היום'],['quote','🌿 משפטים']]
+  :[['att','👥 נוכחות היום'],['schedule','📋 סדר יום'],['message','📣 הודעות'],['image','🖼️ תמונות'],['staff','🧑‍⚕️ צוות'],['quote','🌿 משפטים'],['settings','⚙️ הגדרות']];
 function render(){
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button class="${k===TAB?'on':''}" data-tab="${k}">${l}</button>`).join('');
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;EDIT=null;render();});
-  const banner=DEMO?'<div class="banner">מצב הדגמה: הנתונים נשמרים רק בדפדפן הזה. כדי שיגיעו לטלוויזיה צריך להריץ את setup.html ולהדביק את התוצאה ב-config.js.</div>':'';
+  const banner=(CENTRAL?'<div class="banner" style="background:#E8F0F6">🏥 <b>ניהול כללי</b> – מה שמפרסמים כאן מופיע במחלקות שבוחרים, בנוסף למידע של כל מחלקה.</div>':'')+(DEMO?'<div class="banner">מצב הדגמה: הנתונים נשמרים רק בדפדפן הזה. כדי שיגיעו לטלוויזיה צריך להריץ את setup.html ולהדביק את התוצאה ב-config.js.</div>':'');
   if(TAB==='att'){$('view').innerHTML=banner+viewAtt();bindAtt();}
   else if(TAB==='settings'){$('view').innerHTML=banner+viewSettings();bindSettings();}
   else if(TAB==='image'){$('view').innerHTML=banner+viewImages();bindImages();}
@@ -395,7 +413,8 @@ async function enter(){
     render();
   }catch(e){$('lerr').textContent=String(e);}
 }
-$('tvlink').href=W.CFG.withWard('index.html');
+if(CENTRAL){$('tvlink').href='wards.html';$('tvlink').textContent='כל המחלקות ↗';document.title='ניהול כללי – כל המחלקות';document.querySelector('.login h1').textContent='ניהול כללי – כל המחלקות';document.querySelector('header b').textContent='ניהול כללי';}
+else $('tvlink').href=W.CFG.withWard('index.html');
 if(W.CFG.WARD){document.title+=' – '+(W.CFG.WARD_NAME||W.CFG.WARD);document.querySelector('.login h1').textContent+=' – '+(W.CFG.WARD_NAME||W.CFG.WARD);document.querySelector('header b').textContent+=' – '+(W.CFG.WARD_NAME||W.CFG.WARD);}
 $('enter').onclick=enter;
 $('pin').onkeydown=e=>{if(e.key==='Enter')enter();};

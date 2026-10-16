@@ -383,25 +383,35 @@ function demoItems(){
 let DATA={items:[]},SHAB=null,WX=null,HEB={},HEB_DAY='',mode='',D=null;
 
 /* ---------- טעינה ---------- */
-let ETAG='';
-async function fetchRemote(){
+const ETAGS={};
+async function fetchRemote(path){
+  path=path||CFG.DATA_PATH;
   if(CFG.OWNER&&CFG.REPO){
     try{
-      const h={Accept:'application/vnd.github.raw+json'};if(ETAG)h['If-None-Match']=ETAG;
-      const r=await fetch(`https://api.github.com/repos/${CFG.OWNER}/${CFG.REPO}/contents/${CFG.DATA_PATH}?ref=${CFG.BRANCH}`,{headers:h,cache:'no-store'});
+      const h={Accept:'application/vnd.github.raw+json'};if(ETAGS[path])h['If-None-Match']=ETAGS[path];
+      const r=await fetch(`https://api.github.com/repos/${CFG.OWNER}/${CFG.REPO}/contents/${path}?ref=${CFG.BRANCH}`,{headers:h,cache:'no-store'});
       if(r.status===304)return null;
-      if(r.ok){ETAG=r.headers.get('ETag')||'';return await r.json();}
+      if(r.ok){ETAGS[path]=r.headers.get('ETag')||'';return await r.json();}
     }catch(e){}
     try{
-      const r2=await fetch(`https://raw.githubusercontent.com/${CFG.OWNER}/${CFG.REPO}/${CFG.BRANCH}/${CFG.DATA_PATH}?t=${Date.now()}`,{cache:'no-store'});
+      const r2=await fetch(`https://raw.githubusercontent.com/${CFG.OWNER}/${CFG.REPO}/${CFG.BRANCH}/${path}?t=${Date.now()}`,{cache:'no-store'});
       if(r2.ok)return await r2.json();
     }catch(e){}
   }
-  const r3=await fetch(`${CFG.DATA_PATH}?t=${Date.now()}`,{cache:'no-store'});
+  const r3=await fetch(`${path}?t=${Date.now()}`,{cache:'no-store'});
   if(r3.ok)return await r3.json();
   throw 'no data';
 }
-async function loadData(){
+// מידע מהניהול הכללי (shared.json) – רק פריטים שנבחרו לכל המחלקות או למחלקה הזו
+let SHARED=[];
+async function loadShared(){
+  if(!CFG.OWNER){try{SHARED=JSON.parse(safe.get('ward-demo-central')||'[]')}catch(e){SHARED=[];}return;}
+  try{const j=await fetchRemote('shared.json');if(j&&j.items){SHARED=j.items;safe.set('ward-shared',JSON.stringify(j.items));}}
+  catch(e){try{SHARED=JSON.parse(safe.get('ward-shared')||'[]')}catch(_){SHARED=[];}}
+}
+function sharedHere(){const me=CFG.WARD||'main';return (SHARED||[]).filter(i=>!i.wards||!i.wards.length||i.wards.includes('*')||i.wards.includes(me));}
+async function loadData(){await loadShared();await loadOwn();}
+async function loadOwn(){
   if(!CFG.TOKEN_ENC){
     let local=null;try{local=JSON.parse(safe.get('ward-demo'+(CFG.KEY||''))||'null')}catch(e){}
     if(local&&local.length){DATA={items:local};mode='demo';return;}
@@ -445,7 +455,7 @@ async function loadWeather(){
 
 /* ---------- עיבוד ---------- */
 function derive(now){
-  const items=DATA.items||[],by=x=>items.filter(i=>i.type===x);
+  const items=(DATA.items||[]).concat(sharedHere().filter(i=>i.type!=='settings'&&i.type!=='staff'&&i.type!=='attendance')),by=x=>items.filter(i=>i.type===x);
   const S=Object.assign({phone:'',visitMorning:'',visitEvening:'',sleepStart:'22:30',wakeTime:'06:30',langs:null},by('settings')[0]||{});
   LANGS=(Array.isArray(S.langs)&&S.langs.length?S.langs:ALL_LANGS).filter(l=>L[l]);
   const today=ymd(now),dow=now.getDay(),m=nowMin(now);
