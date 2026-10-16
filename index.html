@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>לוח המחלקה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="ward.js"></script>
+<style>
+/* ===== מערכת עיצוב =====
+   רקע: לבן-מרווה רגוע. דיו: ירוק-כחלחל עמוק. ענבר = "עכשיו" בלבד.
+   הצבע החזק היחיד במסך הוא עמוד השמיים, שמשתנה לפי שעת היום. */
+:root{
+  --u:min(1vw,1.78vh);
+  --paper:#EEF3F1;--panel:#FFFFFF;--line:#DCE6E2;--ink:#16302C;--muted:#5D726E;--faint:#9AAEA9;
+  --amber:#E39B2D;--amber-soft:#FFF4E2;
+  --meal:#2F8A68;--med:#C04E66;--activity:#3A6EA8;--group:#7459A6;--ot:#B7832A;--visit:#CF6E3B;--rest:#6A7985;--other:#6A7985;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif;font-size:calc(var(--u)*1.4);cursor:none;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+.app{display:grid;grid-template-columns:minmax(0,22fr) minmax(0,78fr);grid-template-rows:1fr auto;gap:calc(var(--u)*1.4);height:100vh;padding:calc(var(--u)*1.4);transition:opacity .6s ease}
+.app.fading{opacity:0}
+
+/* ===== עמוד השמיים ===== */
+.sky{grid-row:1/3;position:relative;border-radius:calc(var(--u)*2.4);overflow:hidden;color:#fff;display:flex;flex-direction:column;padding:calc(var(--u)*2.4) calc(var(--u)*2) calc(var(--u)*1.8)}
+.sky .layer{position:absolute;inset:0;opacity:0;transition:opacity 4s ease}
+.sky .layer.on{opacity:1}
+.sky .l-morning{background:linear-gradient(180deg,#2A6AA0 0%,#4D92C6 52%,#F2B479 100%)}
+.sky .l-noon{background:linear-gradient(180deg,#1D5D98 0%,#2F7FBE 58%,#86C3E6 100%)}
+.sky .l-afternoon{background:linear-gradient(180deg,#22568D 0%,#3E7DB3 55%,#E9B56F 100%)}
+.sky .l-evening{background:linear-gradient(180deg,#272C66 0%,#5A4A8C 55%,#D98471 100%)}
+.sky .l-night{background:linear-gradient(180deg,#0A152E 0%,#182851 60%,#2A3D70 100%)}
+.sky>*:not(.layer){position:relative}
+.ward{font-size:calc(var(--u)*1.5);font-weight:500;opacity:.85}
+.dayname{font-size:calc(var(--u)*3.5);font-weight:600;line-height:1.05;margin-top:calc(var(--u)*2.2)}
+.tod{font-size:calc(var(--u)*2.7);font-weight:300;line-height:1.1;margin-top:calc(var(--u)*.4);opacity:.95}
+.clock{font-size:calc(var(--u)*6.2);font-weight:500;line-height:1;letter-spacing:-.02em;margin-top:calc(var(--u)*2.2);text-shadow:0 .4vh 2vh rgba(0,0,0,.18)}
+.clock .c{opacity:.55}
+.dates{margin-top:calc(var(--u)*1.4);font-size:calc(var(--u)*1.6);line-height:1.5}
+.dates .sub{opacity:.8;font-size:calc(var(--u)*1.45)}
+.arc{margin-top:auto;width:100%}
+.arc svg{width:100%;height:auto;display:block;overflow:visible}
+.arc .ends{display:flex;justify-content:space-between;gap:calc(var(--u)*1);font-size:calc(var(--u)*1.3);opacity:.75;margin-top:calc(var(--u)*.4)}
+.skyfoot{display:flex;flex-direction:column;align-items:flex-start;gap:calc(var(--u)*.8);margin-top:calc(var(--u)*1.4);font-size:calc(var(--u)*1.5)}
+.wx{font-size:calc(var(--u)*2.4);font-weight:500}
+.shab{line-height:1.45;opacity:.92;white-space:nowrap;font-size:calc(var(--u)*1.35)}
+.shab b{font-weight:600}
+
+.stage{position:relative;min-height:0}
+.page{position:absolute;inset:0;display:grid;gap:calc(var(--u)*1.4);opacity:0;transition:opacity .9s ease;pointer-events:none}
+.page.on{opacity:1}
+.pg-day{grid-template-columns:minmax(0,.82fr) minmax(0,1.3fr)}
+.pg-people{grid-template-columns:minmax(0,1.75fr) minmax(0,1fr)}
+.pg-people .side{display:flex;flex-direction:column;gap:calc(var(--u)*1.4);min-height:0}
+.pgdots{display:flex;gap:calc(var(--u)*.5)}
+.pgdots i{width:calc(var(--u)*.7);height:calc(var(--u)*.7);border-radius:50%;background:var(--line);transition:.6s}
+.pgdots i.on{background:var(--ink);width:calc(var(--u)*2);border-radius:2vh}
+/* ===== עמודה מרכזית ===== */
+.center{display:flex;flex-direction:column;gap:calc(var(--u)*1.4);min-height:0}
+.nowcard{--c:var(--amber);flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--panel);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.4) calc(var(--u)*2.4);position:relative;overflow:hidden}
+.nowcard::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:calc(var(--u)*.8);background:var(--c)}
+.nowcard .lab{font-size:calc(var(--u)*2);font-weight:600;color:var(--c);display:flex;align-items:center;gap:calc(var(--u)*.8)}
+.nowcard .lab i{width:calc(var(--u)*1);height:calc(var(--u)*1);border-radius:50%;background:var(--c);animation:breathe 3.2s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.6);opacity:.35}}
+.nowcard .main{display:flex;align-items:center;gap:calc(var(--u)*1.6);margin-top:calc(var(--u)*.6);min-width:0}
+.nowcard .main>div:last-child{min-width:0}
+.nowcard .ic{font-size:calc(var(--u)*5.4);line-height:1}
+.nowcard .tt{font-size:calc(var(--u)*3.5);font-weight:600;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nowcard .tm{font-size:calc(var(--u)*2.1);color:var(--muted);margin-top:calc(var(--u)*.3)}
+.nowcard .prog{height:calc(var(--u)*.5);background:var(--line);border-radius:1vh;margin-top:calc(var(--u)*.9);overflow:hidden}
+.nowcard .prog i{display:block;height:100%;background:var(--c);border-radius:1vh;transition:width 2s}
+.nextline{display:flex;flex-wrap:wrap;row-gap:calc(var(--u)*.4);align-items:center;gap:calc(var(--u)*1.2);margin-top:calc(var(--u)*1);padding-top:calc(var(--u)*1);border-top:1px solid var(--line);font-size:calc(var(--u)*2);white-space:nowrap;min-width:0}
+.nextline .k{color:var(--muted);font-weight:500;flex:none}
+.nextline .v{order:3;flex:1 1 100%;font-weight:600;min-width:0;white-space:normal;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nextline .in{margin-inline-start:auto;font-weight:600;color:var(--nc,var(--activity));white-space:nowrap}
+.nextline.soon{background:color-mix(in srgb,var(--nc) 9%,#fff);margin-inline:calc(var(--u)*-2.4) calc(var(--u)*-2.4);padding-inline:calc(var(--u)*2.4);padding-bottom:calc(var(--u)*1.4);margin-bottom:calc(var(--u)*-1.4);border-top-color:transparent}
+.nextline.soon .in{animation:soft 2.4s ease-in-out infinite}
+@keyframes soft{50%{opacity:.45}}
+
+.mm{flex:none;display:flex;flex-direction:column;gap:calc(var(--u)*1.4)}
+.tile{--c:var(--meal);background:var(--panel);border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*1.2) calc(var(--u)*1.6);display:flex;align-items:center;gap:calc(var(--u)*1.2);min-width:0}
+.tile>div:last-child{min-width:0}
+.tile .ic{width:calc(var(--u)*5);height:calc(var(--u)*5);flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*2.7);background:color-mix(in srgb,var(--c) 14%,#fff)}
+.tile .k{font-size:calc(var(--u)*1.55);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .w{display:inline-block;vertical-align:middle;font-size:calc(var(--u)*1.2);font-weight:600;color:#fff;background:var(--c);padding:.2vh calc(var(--u)*.7);border-radius:3vh;margin-inline-start:calc(var(--u)*.6)}
+.tile .tm{white-space:nowrap;font-size:calc(var(--u)*3.4);font-weight:600;color:var(--c);line-height:1.1}
+.tile .tt{font-size:calc(var(--u)*1.75);font-weight:500;line-height:1.2}
+.tile.soon{box-shadow:0 0 0 calc(var(--u)*.25) var(--c) inset}
+
+.sched{background:var(--panel);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.4) calc(var(--u)*1.8);flex:1;min-height:0;display:flex;flex-direction:column}
+.h{font-size:calc(var(--u)*2.6);font-weight:600;color:var(--ink);margin-bottom:calc(var(--u)*.8);display:flex;align-items:baseline;gap:calc(var(--u)*1)}
+.rows{flex:1;min-height:0;overflow:hidden;position:relative}
+.r{--c:var(--other);display:grid;grid-template-columns:calc(var(--u)*7.2) calc(var(--u)*3.2) minmax(0,1fr);align-items:stretch}
+.r .t{align-self:center;font-size:calc(var(--u)*2.3);font-weight:600;text-align:center}
+.r .rail{position:relative}
+.r .rail::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:calc(var(--u)*.3);margin-left:calc(var(--u)*-.15);background:var(--line)}
+.r:first-child .rail::before{top:50%}
+.r.lastvis .rail::before{bottom:50%}
+.r .rail i{position:absolute;top:50%;left:50%;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);margin:calc(var(--u)*-.75) 0 0 calc(var(--u)*-.75);border-radius:50%;background:#fff;border:calc(var(--u)*.3) solid var(--c);box-sizing:border-box}
+.r .it{display:flex;align-items:center;gap:calc(var(--u)*1.1);padding:calc(var(--u)*.7) calc(var(--u)*1.1);margin-block:calc(var(--u)*.3);border-radius:calc(var(--u)*1.3);min-width:0}
+.r .ic{flex:none;width:calc(var(--u)*3.6);height:calc(var(--u)*3.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*1.9);background:color-mix(in srgb,var(--c) 13%,#fff)}
+.r .tx{min-width:0;flex:1}
+.r .ti{font-size:calc(var(--u)*2.2);font-weight:500;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r.key .ti{font-weight:600}
+.r .sub{font-size:calc(var(--u)*1.35);color:var(--muted);margin-top:calc(var(--u)*.2)}
+.r .bar{height:calc(var(--u)*.4);background:rgba(227,155,45,.2);border-radius:1vh;margin-top:calc(var(--u)*.6);overflow:hidden}
+.r .bar i{display:block;height:100%;background:var(--amber);border-radius:1vh}
+.r .b{flex:none;font-size:calc(var(--u)*1.45);font-weight:600;padding:calc(var(--u)*.35) calc(var(--u)*1);border-radius:3vh;color:var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);white-space:nowrap}
+.r.past{opacity:.4}
+.r.past .rail i{background:var(--line);border-color:var(--line)}
+.r.off,.p.hide{display:none}
+.r.now .it{background:var(--amber-soft);box-shadow:inset 0 0 0 calc(var(--u)*.15) rgba(227,155,45,.45);padding-block:calc(var(--u)*1.1)}
+.r.now .ti{font-size:calc(var(--u)*2.6);font-weight:600}
+.r.now .ic{width:calc(var(--u)*4.4);height:calc(var(--u)*4.4);font-size:calc(var(--u)*2.4)}
+.r.now .t{font-size:calc(var(--u)*2.6)}
+.r.now .rail i{width:calc(var(--u)*2.2);height:calc(var(--u)*2.2);margin:calc(var(--u)*-1.1) 0 0 calc(var(--u)*-1.1);background:var(--amber);border-color:#fff;box-shadow:0 0 0 calc(var(--u)*.35) rgba(227,155,45,.35);animation:node 2.8s ease-in-out infinite}
+@keyframes node{50%{box-shadow:0 0 0 calc(var(--u)*.9) rgba(227,155,45,0)}}
+.r.now .b{color:#fff;background:var(--amber)}
+.empty{color:var(--muted);margin:auto;text-align:center;font-size:calc(var(--u)*1.7)}
+
+/* ===== עמודת צד ===== */
+.side{display:flex;flex-direction:column;gap:calc(var(--u)*1.4);min-height:0}
+.team{background:var(--panel);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.4) calc(var(--u)*1.8) calc(var(--u)*.8);flex:2.8;min-height:0;display:flex;flex-direction:column}
+.people{flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;column-gap:calc(var(--u)*2.4);row-gap:calc(var(--u)*.4)}
+.p{display:flex;align-items:center;gap:calc(var(--u)*1.3);padding:calc(var(--u)*.9) 0;border-bottom:1px solid var(--line)}
+
+.p{min-width:0}
+.p>div:nth-child(2){min-width:0;overflow:hidden;flex:1}
+.p.hide{display:none}
+.av{flex:none;width:calc(var(--u)*5);height:calc(var(--u)*5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:calc(var(--u)*2.4);color:hsl(var(--h),45%,30%);background:hsl(var(--h),55%,90%)}
+.p .nm{font-size:calc(var(--u)*2.4);font-weight:500;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p .rl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:calc(var(--u)*1.65);color:var(--muted)}
+.p .hr{margin-inline-start:auto;font-size:calc(var(--u)*2);color:var(--muted);white-space:nowrap;flex:none}
+.p.lead .av{background:var(--ink);color:#fff}
+.p.lead .nm{font-weight:600}
+.pages{display:flex;gap:6px;justify-content:center;align-items:center;height:calc(var(--u)*1.4);flex:none}
+.pages i{width:calc(var(--u)*.6);height:calc(var(--u)*.6);border-radius:50%;background:var(--line)}
+.pages i.on{background:var(--muted)}
+
+.board{flex:1;min-height:0;position:relative;border-radius:calc(var(--u)*1.8);overflow:hidden;background:var(--panel)}
+.card{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease;display:flex;flex-direction:column;justify-content:center;padding:calc(var(--u)*2.2)}
+.card.on{opacity:1}
+.card .k{font-size:calc(var(--u)*1.45);font-weight:600;color:var(--muted);margin-bottom:calc(var(--u)*1)}
+.card .msg{font-weight:500;line-height:1.35;overflow:hidden}
+.card.imp{background:#FBEFF1}
+.card.imp .k{color:var(--med)}
+.card.photo{padding:0}
+.card.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.card.photo.on img{animation:drift 14s ease-out both}
+@keyframes drift{from{transform:scale(1.06)}to{transform:scale(1)}}
+.card.photo .cap{position:absolute;inset-inline:0;bottom:0;padding:calc(var(--u)*3) calc(var(--u)*1.8) calc(var(--u)*1.4);background:linear-gradient(transparent,rgba(10,25,22,.65));color:#fff;font-size:calc(var(--u)*1.8);font-weight:500}
+.card.calm{background:linear-gradient(160deg,#E4F0EA,#F3F7F5)}
+.card.calm .msg{color:#2C5A4E;font-weight:400}
+
+.visit{flex:none;background:var(--ink);color:#fff;border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*2) calc(var(--u)*2.2)}
+.visit .k{font-size:calc(var(--u)*2.2);font-weight:600;opacity:.9}
+.visit .slots{display:flex;flex-direction:column;gap:calc(var(--u)*1);white-space:nowrap;font-size:calc(var(--u)*2.8);font-weight:500;margin-top:calc(var(--u)*1)}
+.visit .slots small{display:block;font-size:calc(var(--u)*1.5);opacity:.7;font-weight:400}
+.visit .slots .open{color:#9FE3C4}
+.visit .note{font-size:calc(var(--u)*1.7);opacity:.8;margin-top:calc(var(--u)*.5)}
+.visit .ph{gap:calc(var(--u)*1);margin-top:calc(var(--u)*1.4);padding-top:calc(var(--u)*1.4);border-top:1px solid rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:flex-start;font-size:calc(var(--u)*1.6)}
+.visit .ph b{font-size:calc(var(--u)*2.4);font-weight:600;white-space:nowrap}
+.visit .ph span{white-space:nowrap}
+
+/* ===== שורת תחתית ===== */
+.foot{grid-column:2;display:flex;align-items:center;gap:calc(var(--u)*2);padding:0 calc(var(--u)*1)}
+.quote{flex:1;font-size:calc(var(--u)*1.9);font-weight:400;color:#2C5A4E;transition:opacity 1.4s}
+.quote.fade{opacity:0}
+.langs{display:flex;gap:calc(var(--u)*.5);direction:ltr}
+.langs b{font-size:calc(var(--u)*1.15);font-weight:500;color:var(--faint);padding:.2vh calc(var(--u)*.7);border-radius:3vh}
+.langs b.on{background:var(--ink);color:#fff}
+.demo{font-size:calc(var(--u)*1);color:var(--faint)}
+
+/* ===== הודעה על כל המסך ===== */
+.flash{position:fixed;inset:0;z-index:8;background:var(--paper);display:flex;flex-direction:column;padding:calc(var(--u)*3) calc(var(--u)*5);opacity:0;pointer-events:none;transition:opacity 1.1s ease}
+.flash.on{opacity:1}
+.flash.imp{background:#FBEFF1}
+.flash .fh{display:flex;align-items:center;justify-content:space-between;font-size:calc(var(--u)*2.2);font-weight:600;color:var(--muted)}
+.flash.imp .fh .k{color:var(--med)}
+.flash .fh .fc{font-size:calc(var(--u)*3);font-weight:500;color:var(--ink)}
+.flash .fb{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.flash .fx{font-weight:600;line-height:1.3;color:var(--ink);max-width:85vw}
+.flash.on .fx{animation:settle 1.4s ease both}
+@keyframes settle{from{opacity:0;transform:scale(.96)}}
+.flash .fbar{height:calc(var(--u)*.45);background:var(--line);border-radius:1vh;overflow:hidden}
+.flash .fbar i{display:block;height:100%;width:0;background:var(--ink);opacity:.35}
+
+/* ===== לילה ===== */
+.night{position:fixed;inset:0;z-index:9;background:radial-gradient(ellipse at 50% 20%,#1A2A52,#070F22 70%);color:#C9D5EA;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:calc(var(--u)*1.6)}
+.night[hidden]{display:none}
+.night .st{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;animation:tw 4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.1}}
+.night .moon{width:calc(var(--u)*9);height:calc(var(--u)*9);border-radius:50%;box-shadow:inset calc(var(--u)*-2.2) calc(var(--u)*-.6) 0 0 #F2E3B3;filter:drop-shadow(0 0 3vh rgba(242,227,179,.35));margin-bottom:calc(var(--u)*1)}
+.night h1{font-size:calc(var(--u)*6.4);font-weight:500;color:#E9EEF8}
+.night .nc{font-size:calc(var(--u)*5);font-weight:300;opacity:.8}
+.night p{font-size:calc(var(--u)*2.1);max-width:60vw;line-height:1.5;opacity:.75}
+.night .ns{font-size:calc(var(--u)*1.5);opacity:.5;margin-top:calc(var(--u)*1);line-height:1.6}
+/* ===== תמונות על כל המסך ===== */
+.pshow{position:fixed;inset:0;z-index:8;background:#0E1A17;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
+.pshow.on{opacity:1}
+.pshow .ps{position:absolute;inset:0;opacity:0;transition:opacity 1.6s ease}
+.pshow .ps.on{opacity:1}
+.pshow .bg{position:absolute;inset:-6%;background-size:cover;background-position:center;filter:blur(36px) brightness(.5);transform:scale(1.08)}
+.pshow img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.pshow .ps.on img{animation:kb 12s ease-out both}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.06)}}
+.pshow .cap{position:absolute;inset-inline:0;bottom:calc(var(--u)*5);text-align:center}
+.pshow .cap span{display:inline-block;background:rgba(0,0,0,.45);color:#fff;font-size:calc(var(--u)*3);font-weight:500;padding:calc(var(--u)*.8) calc(var(--u)*2.4);border-radius:5vh}
+.pshow .pclock{position:absolute;top:calc(var(--u)*2.4);inset-inline-end:calc(var(--u)*3);color:#fff;font-size:calc(var(--u)*3.2);font-weight:500;background:rgba(0,0,0,.35);padding:calc(var(--u)*.4) calc(var(--u)*1.6);border-radius:4vh}
+.pshow .pbar{position:absolute;inset-inline:calc(var(--u)*3);bottom:calc(var(--u)*2);height:calc(var(--u)*.4);background:rgba(255,255,255,.2);border-radius:1vh;overflow:hidden}
+.pshow .pbar i{display:block;height:100%;width:0;background:rgba(255,255,255,.7)}
+/* ===== בוקר טוב ===== */
+.morning{position:fixed;inset:0;z-index:9;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:calc(var(--u)*1.4);color:#3B2A12;
+  background:linear-gradient(180deg,#8EC5EA 0%,#BFDDEE 30%,#FBE3B8 62%,#F8C27E 82%,#F3A36A 100%)}
+.morning[hidden]{display:none}
+.morning .sunwrap{position:relative;width:calc(var(--u)*16);height:calc(var(--u)*16);margin-bottom:calc(var(--u)*.6);animation:rise 9s ease-out both}
+@keyframes rise{from{transform:translateY(8vh);opacity:.4}}
+.morning .rays{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,214,102,.55) 0 6deg,transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(circle,transparent 38%,#000 40%,#000 62%,transparent 70%);mask:radial-gradient(circle,transparent 38%,#000 40%,#000 62%,transparent 70%);animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.morning .sun{position:absolute;inset:27%;border-radius:50%;background:radial-gradient(circle at 40% 38%,#FFF3C4,#FFD45C 55%,#F7B23B);box-shadow:0 0 6vh rgba(255,200,80,.75),0 0 14vh rgba(255,190,90,.45)}
+.morning .cloud{position:absolute;height:calc(var(--u)*4.5);border-radius:5vh;background:rgba(255,255,255,.75);filter:blur(2px)}
+.morning .cloud::before,.morning .cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.morning .cloud::before{width:45%;height:150%;top:-60%;left:15%}
+.morning .cloud::after{width:35%;height:120%;top:-40%;left:50%}
+.morning .c1{width:calc(var(--u)*16);top:14%;left:-20%;animation:drift 90s linear infinite}
+.morning .c2{width:calc(var(--u)*11);top:26%;left:-15%;animation:drift 120s linear infinite;animation-delay:-50s;opacity:.8}
+@keyframes drift{to{transform:translateX(140vw)}}
+.morning .hill{position:absolute;bottom:-8vh;width:70vw;height:22vh;border-radius:50%;background:#9CC59A;opacity:.55}
+.morning .h1{left:-10vw}.morning .h2{right:-15vw;background:#86B88A;bottom:-11vh}
+.morning h1{position:relative;font-size:calc(var(--u)*7);font-weight:600;color:#4A2E0E}
+.morning .mc{position:relative;font-size:calc(var(--u)*5);font-weight:300;color:#5A3E1C}
+.morning p{position:relative;font-size:calc(var(--u)*2.3);max-width:62vw;line-height:1.5;color:#5A3E1C}
+.morning .mnext{position:relative;display:flex;gap:calc(var(--u)*1.4);margin-top:calc(var(--u)*1)}
+.morning .mnext div{background:rgba(255,255,255,.65);border-radius:3vh;padding:calc(var(--u)*.8) calc(var(--u)*1.8);font-size:calc(var(--u)*2);font-weight:500;color:#3B2A12}
+.morning .mnext b{font-weight:600}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sky" id="sky">
+    <div class="layer l-morning"></div><div class="layer l-noon"></div><div class="layer l-afternoon"></div><div class="layer l-evening"></div><div class="layer l-night"></div>
+    <div class="ward" id="ward"></div>
+    <div class="dayname" id="dayname"></div>
+    <div class="tod" id="tod"></div>
+    <div class="clock num" id="clock">--:--</div>
+    <div class="dates"><div id="gdate"></div><div class="sub" id="hdate"></div></div>
+    <div class="arc" id="arc"></div>
+    <div class="skyfoot"><div class="wx" id="wx"></div><div class="shab" id="shab"></div></div>
+  </aside>
+
+  <div class="stage">
+    <!-- עמוד 1: היום -->
+    <div class="page pg-day on" id="pg0">
+      <div class="center"><section class="nowcard" id="now"></section><section class="mm" id="mm"></section></div>
+      <section class="sched"><div class="h" id="schedH"></div><div class="rows" id="rows"></div></section>
+    </div>
+    <!-- עמוד 2: הצוות והביקורים -->
+    <div class="page pg-people" id="pg1">
+      <div class="team"><div class="h" id="teamH"></div><div class="people" id="people"></div><div class="pages" id="pages"></div></div>
+      <div class="side"><div class="visit" id="visit"></div><div class="board" id="board"></div></div>
+    </div>
+  </div>
+
+  <footer class="foot"><div class="quote" id="quote"></div><div class="demo" id="demo"></div><div class="pgdots" id="pgdots"></div><div class="langs" id="langs"></div></footer>
+</div>
+<div class="flash" id="flash"><div class="fh"><span class="k" id="fk"></span><span class="fc num" id="fc"></span></div><div class="fb"><div class="fx" id="fx"></div></div><div class="fbar"><i id="fbar"></i></div></div>
+<div class="pshow" id="pshow"></div>
+<div class="morning" id="morning" hidden><i class="cloud c1"></i><i class="cloud c2"></i><i class="hill h1"></i><i class="hill h2"></i>
+  <div class="sunwrap"><div class="rays"></div><div class="sun"></div></div><h1 id="mgt"></h1><div class="mc num" id="mclock"></div><p id="mmsg"></p><div class="mnext" id="mnext"></div></div>
+<div class="night" id="night" hidden><div class="moon"></div><h1 id="ngt"></h1><div class="nc num" id="nclock"></div><p id="nmsg"></p><div class="ns" id="nsub"></div></div>
+
+<script>
+const CFG=Object.assign({OWNER:'',REPO:'',BRANCH:'main',DATA_PATH:'data.json',TOKEN_ENC:'',REFRESH_SECONDS:60,QUOTE_SECONDS:18,
+  BOARD_SECONDS:12,TEAM_SECONDS:10,PAGE_SECONDS:20,FLASH_EVERY:50,FLASH_SECONDS:9,PHOTO_SECONDS:9,PHOTOS_PER_ROUND:3,GEONAME_ID:281184,LAT:31.7683,LON:35.2137},window.CONFIG||{});
+const ALL_LANGS=['he','ar','en'];
+
+/* ---------- מילון ---------- */
+const L={
+he:{sched:'סדר היום',now:'עכשיו',until:'עד',noSched:'אין פעילויות מתוכננות להיום',head:'מנהל/ת המחלקה',secretary:'מזכירת המחלקה',team:'הצוות במחלקה היום',
+  noTeam:'הצוות יעודכן בקרוב',free:'זמן חופשי',freeSub:'אפשר לנוח, לקרוא או לפנות לצוות',next:'אחר כך',done:'סיימנו את סדר היום',
+  nextMeal:'הארוחה הבאה',nextMed:'התרופות הבאות',tomorrow:'מחר',visits:'שעות ביקור',morning:'בוקר',evening:'ערב',openNow:'פתוח עכשיו',phone:'טלפון המחלקה',
+  msg:'הודעה',imp:'הודעה חשובה',shIn:'כניסת שבת',shOut:'יציאת שבת',shabbat:'שבת שלום',morningT:'בוקר טוב',morningMsg:'יום חדש מתחיל. הצוות כאן איתכם.',night:'לילה טוב',nightMsg:'הגיע הזמן לנוח. הצוות כאן איתכם כל הלילה.',
+  rest:'שעות מנוחה',wake:'השכמה',sleep:'שינה',vM:'ביקורים – בוקר',vE:'ביקורים – ערב',sleepRow:'לילה טוב',demo:'מצב הדגמה',offline:'אין חיבור – מוצג מידע אחרון',
+  tod:['בוקר','צהריים','אחר הצהריים','ערב','לילה'],inM:d=>`בעוד ${d} דק׳`,inH:(h,m)=>`בעוד ${h}:${m} ש׳`},
+ar:{sched:'برنامج اليوم',now:'الآن',until:'حتى',noSched:'لا توجد فعاليات مخططة اليوم',head:'مدير/ة القسم',secretary:'سكرتيرة القسم',team:'الطاقم في القسم اليوم',
+  noTeam:'سيتم تحديث الطاقم قريباً',free:'وقت حر',freeSub:'يمكنكم الراحة أو القراءة أو التوجه للطاقم',next:'بعد ذلك',done:'انتهى برنامج اليوم',
+  nextMeal:'الوجبة القادمة',nextMed:'الأدوية القادمة',tomorrow:'غداً',visits:'ساعات الزيارة',morning:'صباحاً',evening:'مساءً',openNow:'مفتوحة الآن',phone:'هاتف القسم',
+  msg:'رسالة',imp:'رسالة مهمة',shIn:'دخول السبت',shOut:'خروج السبت',shabbat:'سبت هادئ',morningT:'صباح الخير',morningMsg:'يوم جديد يبدأ. الطاقم هنا معكم.',night:'تصبحون على خير',nightMsg:'حان وقت الراحة. الطاقم هنا معكم طوال الليل.',
+  rest:'ساعات الراحة',wake:'صباحاً',sleep:'النوم',vM:'زيارة – صباحاً',vE:'زيارة – مساءً',sleepRow:'تصبحون على خير',demo:'وضع تجريبي',offline:'لا يوجد اتصال – تُعرض آخر معلومات',
+  tod:['الصباح','الظهر','بعد الظهر','المساء','الليل'],inM:d=>`بعد ${d} د`,inH:(h,m)=>`بعد ${h}:${m} س`},
+en:{sched:"Today's schedule",now:'Now',until:'until',noSched:'No activities planned today',head:'Head of department',secretary:'Ward secretary',team:'On the ward today',
+  noTeam:'The team will be updated soon',free:'Free time',freeSub:'You can rest, read or talk to the staff',next:'Next',done:"That's all for today",
+  nextMeal:'Next meal',nextMed:'Next medication',tomorrow:'Tomorrow',visits:'Visiting hours',morning:'Morning',evening:'Evening',openNow:'Open now',phone:'Ward phone',
+  msg:'Message',imp:'Important',shIn:'Shabbat begins',shOut:'Shabbat ends',shabbat:'Shabbat Shalom',morningT:'Good morning',morningMsg:'A new day is starting. The staff are here with you.',night:'Good night',nightMsg:'Time to rest. The staff are here with you all night.',
+  rest:'Quiet hours',wake:'Wake up',sleep:'Bedtime',vM:'Visiting – morning',vE:'Visiting – evening',sleepRow:'Good night',demo:'Demo mode',offline:'Offline – showing last saved info',
+  tod:['Morning','Midday','Afternoon','Evening','Night'],inM:d=>`in ${d} min`,inH:(h,m)=>`in ${h}:${m} h`}
+};
+const ROLE_T={'מנהל/ת המחלקה':['مدير/ة القسم','Head of department'],'רופא/ה':['طبيب/ة','Doctor'],'אח/ות אחראי/ת':['ممرض/ة مسؤول/ة','Charge nurse'],'אח/ות':['ممرض/ة','Nurse'],
+  'מזכיר/ה':['سكرتير/ة','Secretary'],'ריפוי בעיסוק':['علاج وظيفي','Occupational therapist'],'עובד/ת סוציאלי/ת':['عامل/ة اجتماعي/ة','Social worker'],'פסיכולוג/ית':['أخصائي/ة نفسي/ة','Psychologist'],
+  'כוח עזר':['مساعد/ة','Care assistant'],'סטודנט/ית':['طالب/ة','Student'],'מתנדב/ת':['متطوع/ة','Volunteer'],'אחר':['','']};
+const DEFAULT_QUOTES={
+  he:['נשימה עמוקה אחת יכולה לעשות הבדל גדול','אתם לא לבד – הצוות כאן בשבילכם','כל יום הוא התחלה חדשה','צעד קטן הוא עדיין צעד קדימה','מותר לנוח. מותר לבקש עזרה','גם רגש קשה חולף, כמו ענן בשמיים','לאט לאט, בקצב שלכם'],
+  ar:['نفس عميق واحد قد يصنع فرقاً كبيراً','لستم وحدكم – الطاقم هنا من أجلكم','كل يوم هو بداية جديدة','خطوة صغيرة هي أيضاً خطوة إلى الأمام','من حقكم أن ترتاحوا وأن تطلبوا المساعدة','حتى الشعور الصعب يمرّ، كغيمة في السماء','شيئاً فشيئاً، على مهلكم'],
+  en:['One deep breath can make a big difference','You are not alone – the staff are here for you','Every day is a new beginning','A small step is still a step forward','It is okay to rest. It is okay to ask for help','Even hard feelings pass, like clouds in the sky','Slowly, at your own pace']};
+const CATS={meal:['🍽️','var(--meal)'],med:['💊','var(--med)'],activity:['🎯','var(--activity)'],group:['👥','var(--group)'],ot:['🎨','var(--ot)'],visit:['🤝','var(--visit)'],rest:['🛏️','var(--rest)'],other:['📌','var(--other)']};
+const LOCALE={he:'he-IL',ar:'ar-u-nu-latn',en:'en-GB'};
+
+let LANG='he',LANGS=ALL_LANGS,langIdx=0;
+const t=k=>(L[LANG]&&L[LANG][k]!=null?L[LANG][k]:L.he[k]);
+const tr=(o,f)=>!o?'':(LANG!=='he'&&o[f+'_'+LANG])||o[f]||'';
+const roleT=r=>LANG==='he'||!ROLE_T[r]?(r||''):(ROLE_T[r][LANG==='ar'?0:1]||r);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
+const toMin=s=>{if(!s)return null;const p=String(s).split(':').map(Number);return isNaN(p[0])?null:p[0]*60+(p[1]||0)};
+const nowMin=d=>d.getHours()*60+d.getMinutes();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const safe={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const inMins=d=>d<60?t('inM')(d):t('inH')(Math.floor(d/60),pad(d%60));
+const hue=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return h};
+const initial=n=>String(n||'').replace(/^(ד["״]ר|د\.|Dr\.?)\s*/,'').trim().charAt(0)||'•';
+const icon=i=>esc(i.icon||(CATS[i.cat]||CATS.other)[0]);
+const col=i=>(CATS[i.cat]||CATS.other)[1];
+const title=i=>esc(tr(i,'title'));
+const rawUrl=u=>/^(https?:|data:)/.test(u)||!CFG.OWNER?'':`https://raw.githubusercontent.com/${CFG.OWNER}/${CFG.REPO}/${CFG.BRANCH}/${u}`;
+
+function activeOn(it,d){
+  const ds=ymd(d);
+  if(it.start&&ds<it.start)return false;
+  if(it.end&&ds>it.end)return false;
+  if(it.rec==='weekly'&&!(it.days||[]).map(Number).includes(d.getDay()))return false;
+  return true;
+}
+
+function demoItems(){
+  const td=ymd(new Date()),all=[0,1,2,3,4,5,6];
+  const s=(id,time,title,ar,en,cat,extra)=>Object.assign({type:'schedule',id,time,title,title_ar:ar,title_en:en,cat,rec:'daily'},extra||{});
+  return [
+    {type:'settings',id:'settings',wardName:'מחלקה א׳',wardName_ar:'قسم أ',wardName_en:'Ward A',phone:'02-0000000',secretaryName:'זהבה אברהם',secretaryName_ar:'زهافا أفراهام',secretaryName_en:'Zehava Avraham',
+     headName:'ד״ר משה כהן',headName_ar:'د. موشيه كوهين',headName_en:'Dr. Moshe Cohen',visitMorning:'10:00-12:00',visitEvening:'16:00-19:00',
+     visitNote:'הביקורים בחדר האוכל',visitNote_ar:'الزيارات في غرفة الطعام',visitNote_en:'Visits are in the dining room',sleepStart:'22:30',wakeTime:'06:30'},
+    {type:'staff',id:'s1',name:'ד״ר משה כהן',name_ar:'د. موشيه كوهين',name_en:'Dr. Moshe Cohen',role:'מנהל/ת המחלקה',days:all,from:'08:00',to:'15:00'},
+    {type:'staff',id:'s2',name:'ד״ר נועה ברק',name_ar:'د. نوعا باراك',name_en:'Dr. Noa Barak',role:'רופא/ה',days:all,from:'08:00',to:'16:00'},
+    {type:'staff',id:'s4',name:'אורית לוי',name_ar:'أوريت ليفي',name_en:'Orit Levi',role:'אח/ות אחראי/ת',days:all,from:'07:00',to:'15:00'},
+    {type:'staff',id:'s5',name:'מוחמד חלבי',name_ar:'محمد حلبي',name_en:'Mohammad Halabi',role:'אח/ות',days:all,from:'07:00',to:'15:00'},
+    {type:'staff',id:'s6',name:'יעל מזרחי',name_ar:'ياعيل مزراحي',name_en:'Yael Mizrahi',role:'אח/ות',days:all,from:'15:00',to:'23:00'},
+    {type:'staff',id:'s7',name:'שירה כץ',name_ar:'شيرا كاتس',name_en:'Shira Katz',role:'ריפוי בעיסוק',days:all,from:'09:00',to:'14:00'},
+    {type:'staff',id:'s8',name:'זהבה אברהם',name_ar:'زهافا أفراهام',name_en:'Zehava Avraham',role:'מזכיר/ה',days:all,from:'08:00',to:'16:00'},
+    s('a1','07:00','השכמה ורחצה','استيقاظ واستحمام','Wake up & shower','rest',{icon:'☀️'}),
+    s('a2','07:30','תרופות בוקר','أدوية الصباح','Morning medication','med',{endTime:'08:00'}),
+    s('a3','08:00','ארוחת בוקר','وجبة الفطور','Breakfast','meal',{endTime:'08:45'}),
+    s('a4','09:00','התעמלות בוקר','رياضة صباحية','Morning exercise','activity',{endTime:'09:45',icon:'🤸'}),
+    s('a5','10:30','סדנת יצירה','ورشة فنون','Art workshop','ot',{endTime:'11:30'}),
+    s('a6','11:30','קבוצת שיחה','مجموعة حوار','Talk group','group',{endTime:'12:15'}),
+    s('a7','12:30','ארוחת צהריים','وجبة الغداء','Lunch','meal',{endTime:'13:15'}),
+    s('a8','13:15','תרופות צהריים','أدوية الظهر','Noon medication','med',{endTime:'13:30'}),
+    s('a9','13:30','מנוחת צהריים','استراحة الظهر','Afternoon rest','rest',{endTime:'15:00'}),
+    s('a10','15:00','קבוצת מוזיקה','مجموعة موسيقى','Music group','ot',{endTime:'16:00',icon:'🎵'}),
+    s('a11','18:00','ארוחת ערב','وجبة العشاء','Dinner','meal',{endTime:'18:45'}),
+    s('a12','20:00','תרופות ערב','أدوية المساء','Evening medication','med',{endTime:'20:30'}),
+    s('a13','21:30','תרופות לילה','أدوية الليل','Night medication','med'),
+    {type:'message',id:'m1',text:'מחר בשעה 10:00 תתקיים אסיפת מטופלים בחדר האוכל',text_ar:'غداً الساعة 10:00 سيُعقد اجتماع للمرضى في غرفة الطعام',text_en:'Tomorrow at 10:00 there is a patients meeting in the dining room',important:true,rec:'once',start:td,end:td},
+    {type:'message',id:'m3',text:'חשוב לשתות הרבה מים במהלך היום',text_ar:'من المهم شرب الكثير من الماء خلال اليوم',text_en:'Remember to drink plenty of water today',rec:'daily'}
+  ];
+}
+
+let DATA={items:[]},SHAB=null,WX=null,HEB={},HEB_DAY='',mode='',D=null;
+
+/* ---------- טעינה ---------- */
+let ETAG='';
+async function fetchRemote(){
+  if(CFG.OWNER&&CFG.REPO){
+    try{
+      const h={Accept:'application/vnd.github.raw+json'};if(ETAG)h['If-None-Match']=ETAG;
+      const r=await fetch(`https://api.github.com/repos/${CFG.OWNER}/${CFG.REPO}/contents/${CFG.DATA_PATH}?ref=${CFG.BRANCH}`,{headers:h,cache:'no-store'});
+      if(r.status===304)return null;
+      if(r.ok){ETAG=r.headers.get('ETag')||'';return await r.json();}
+    }catch(e){}
+    try{
+      const r2=await fetch(`https://raw.githubusercontent.com/${CFG.OWNER}/${CFG.REPO}/${CFG.BRANCH}/${CFG.DATA_PATH}?t=${Date.now()}`,{cache:'no-store'});
+      if(r2.ok)return await r2.json();
+    }catch(e){}
+  }
+  const r3=await fetch(`${CFG.DATA_PATH}?t=${Date.now()}`,{cache:'no-store'});
+  if(r3.ok)return await r3.json();
+  throw 'no data';
+}
+async function loadData(){
+  if(!CFG.TOKEN_ENC){
+    let local=null;try{local=JSON.parse(safe.get('ward-demo'+(CFG.KEY||''))||'null')}catch(e){}
+    if(local&&local.length){DATA={items:local};mode='demo';return;}
+  }
+  try{
+    const j=await fetchRemote();
+    if(j&&j.items){DATA=j;safe.set('ward-cache'+(CFG.KEY||''),JSON.stringify(j));}
+    mode='';
+  }catch(e){
+    let c=null;try{c=JSON.parse(safe.get('ward-cache'+(CFG.KEY||''))||'null')}catch(_){}
+    if(c){DATA=c;mode='offline';}else if(CFG.OWNER){DATA={items:[]};mode='';}else{DATA={items:demoItems()};mode='demo';}
+  }
+}
+async function loadShabbat(){
+  try{
+    const j=await(await fetch(`https://www.hebcal.com/shabbat?cfg=json&geonameid=${CFG.GEONAME_ID}&M=on&lg=he`)).json();
+    const c=j.items.find(i=>i.category==='candles'),h=j.items.find(i=>i.category==='havdalah');
+    SHAB={in:c?new Date(c.date):null,out:h?new Date(h.date):null};
+  }catch(e){}
+}
+async function loadHebDate(){
+  const d=new Date(),key=ymd(d);
+  if(HEB_DAY===key)return;
+  const f=l=>{try{return new Intl.DateTimeFormat(l,{day:'numeric',month:'long',year:'numeric'}).format(d)}catch(_){return ''}};
+  try{
+    const j=await(await fetch(`https://www.hebcal.com/converter?cfg=json&gy=${d.getFullYear()}&gm=${d.getMonth()+1}&gd=${d.getDate()}&g2h=1`)).json();
+    HEB={he:(j.hebrew||'').replace(/[֑-ׇ]/g,''),en:`${j.hd} ${j.hm} ${j.hy}`};HEB_DAY=key;
+  }catch(e){HEB={he:f('he-IL-u-ca-hebrew'),en:f('en-u-ca-hebrew')};}
+}
+function subDate(d){
+  if(LANG==='ar'){try{return new Intl.DateTimeFormat('ar-u-ca-islamic-umalqura-nu-latn',{day:'numeric',month:'long',year:'numeric'}).format(d);}catch(e){return '';}}
+  return HEB[LANG]||HEB.he||'';
+}
+const WXI=c=>c===0?'☀️':c<=2?'🌤️':c===3?'☁️':c<=48?'🌫️':c<=67?'🌧️':c<=77?'❄️':c<=82?'🌦️':'⛈️';
+async function loadWeather(){
+  try{
+    const j=await(await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${CFG.LAT}&longitude=${CFG.LON}&current=temperature_2m,weather_code&timezone=Asia%2FJerusalem`)).json();
+    WX={t:Math.round(j.current.temperature_2m),c:j.current.weather_code};
+  }catch(e){}
+}
+
+/* ---------- עיבוד ---------- */
+function derive(now){
+  const items=DATA.items||[],by=x=>items.filter(i=>i.type===x);
+  const S=Object.assign({phone:'',visitMorning:'',visitEvening:'',sleepStart:'22:30',wakeTime:'06:30',langs:null},by('settings')[0]||{});
+  LANGS=(Array.isArray(S.langs)&&S.langs.length?S.langs:ALL_LANGS).filter(l=>L[l]);
+  const today=ymd(now),dow=now.getDay(),m=nowMin(now);
+  const att=by('attendance').filter(a=>a.date===today);
+  let staff=by('staff').filter(s=>s.active!==false).map(s=>{
+    const a=att.find(x=>x.staffId===s.id);
+    let present=(s.days||[]).map(Number).includes(dow),from=s.from,to=s.to;
+    if(a){present=a.status==='in';if(a.from)from=a.from;if(a.to)to=a.to;}
+    return Object.assign({},s,{present,from,to});
+  }).filter(s=>s.present);
+  att.filter(a=>!a.staffId&&a.status==='in').forEach(a=>staff.push({name:a.name,name_ar:a.name_ar,name_en:a.name_en,role:a.role,from:a.from,to:a.to}));
+  staff=staff.filter(s=>{const f=toMin(s.from),e=toMin(s.to);if(f==null||e==null||e<=f)return true;return m<e;});
+  let sched=by('schedule').filter(i=>activeOn(i,now));
+  const vis=(v,key)=>{if(!v)return;const[a,b]=String(v).split(/[-–]/).map(x=>x.trim());if(toMin(a)!=null)sched.push({time:a,endTime:b,title:t(key),cat:'visit'});};
+  vis(S.visitMorning,'vM');vis(S.visitEvening,'vE');
+  if(S.sleepStart)sched.push({time:S.sleepStart,title:t('sleepRow'),cat:'rest',icon:'🌙'});
+  sched=sched.map(i=>{const s=toMin(i.time);const e=i.endTime?toMin(i.endTime):s+30;return Object.assign({},i,{s,e})}).filter(i=>i.s!=null).sort((a,b)=>a.s-b.s);
+  const msgs=by('message').filter(i=>activeOn(i,now)&&i.text).sort((a,b)=>(b.important?1:0)-(a.important?1:0));
+  let quotes=by('quote').filter(i=>activeOn(i,now)).map(q=>LANG==='he'?q.text:q['text_'+LANG]).filter(Boolean);
+  if(!quotes.length)quotes=DEFAULT_QUOTES[LANG]||DEFAULT_QUOTES.he;
+  const images=by('image').filter(i=>activeOn(i,now)&&i.url);
+  const cur=sched.findIndex(r=>m>=r.s&&m<r.e),next=sched.findIndex(r=>r.s>m);
+  const tmr=new Date(now);tmr.setDate(tmr.getDate()+1);
+  const schedTmr=by('schedule').filter(i=>activeOn(i,tmr)).map(i=>Object.assign({},i,{s:toMin(i.time)})).filter(i=>i.s!=null).sort((a,b)=>a.s-b.s);
+  return{S,staff,sched,schedTmr,msgs,quotes,images,m,cur,next};
+}
+const isDoc=s=>/רופא|מנהל|ד״ר|ד"ר/.test((s.role||'')+' '+(s.name||''));
+const rank=s=>s.role==='מנהל/ת המחלקה'?0:isDoc(s)?1:s.role==='אח/ות אחראי/ת'?2:s.role==='אח/ות'?3:s.role==='מזכיר/ה'?5:4;
+
+/* ---------- עמוד השמיים ---------- */
+function todIndex(m){return m>=300&&m<690?0:m>=690&&m<840?1:m>=840&&m<1020?2:m>=1020&&m<1290?3:4;}
+const TOD_KEYS=['morning','noon','afternoon','evening','night'];
+function renderSky(now){
+  const S=D.S,m=D.m,ti=todIndex(m);
+  document.querySelectorAll('#sky .layer').forEach(l=>l.classList.toggle('on',l.classList.contains('l-'+TOD_KEYS[ti])));
+  $('ward').textContent=tr(S,'wardName');
+  $('dayname').textContent=now.toLocaleDateString(LOCALE[LANG],{weekday:'long'});
+  $('tod').textContent=t('tod')[ti];
+  $('gdate').textContent=now.toLocaleDateString(LOCALE[LANG],{day:'numeric',month:'long',year:'numeric'});
+  $('hdate').textContent=subDate(now);
+  $('wx').innerHTML=WX?`${WXI(WX.c)} <span class="num">${WX.t}°</span>`:'';
+  let sh='';const dow=now.getDay();
+  if(SHAB&&SHAB.in&&SHAB.out&&now<SHAB.out&&(dow===4||dow===5||dow===6)){
+    sh=now>=SHAB.in?`<b>${t('shabbat')}</b><br>${t('shOut')} <span class="num">${hm(SHAB.out)}</span>`
+      :`${t('shIn')} <span class="num">${hm(SHAB.in)}</span><br>${t('shOut')} <span class="num">${hm(SHAB.out)}</span>`;
+  }
+  $('shab').innerHTML=sh;
+  // קשת השמש: מהשכמה ועד השינה
+  const wake=toMin(S.wakeTime)??390,sleep=toMin(S.sleepStart)??1350;
+  const p=Math.max(0,Math.min(1,(m-wake)/Math.max(1,sleep-wake))),rtl=LANG!=='en';
+  const W=300,H=110,cx=150,cy=104,r=96,th=Math.PI*(1-p),x=cx+(rtl?-1:1)*r*Math.cos(th),y=cy-r*Math.sin(th);
+  const sx=cx+(rtl?r:-r),day=ti!==4;
+  const done=p>0?`M ${sx} ${cy} A ${r} ${r} 0 0 ${rtl?0:1} ${x.toFixed(1)} ${y.toFixed(1)}`:'';
+  $('arc').innerHTML=`<svg viewBox="0 0 ${W} ${H}">
+    <path d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-dasharray="3 6"/>
+    ${done?`<path d="${done}" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2.5" stroke-linecap="round"/>`:''}
+    <line x1="${cx-r-8}" y1="${cy}" x2="${cx+r+8}" y2="${cy}" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+    ${day?`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="16" fill="rgba(255,214,120,.25)"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="#FFD27A"/>`
+         :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="#EDE3C2"/><circle cx="${(x+4).toFixed(1)}" cy="${(y-3).toFixed(1)}" r="8" fill="#1E2E58"/>`}
+  </svg><div class="ends"><span>${t('wake')} <span class="num">${esc(S.wakeTime||'')}</span></span><span>${t('sleep')} <span class="num">${esc(S.sleepStart||'')}</span></span></div>`;
+}
+
+/* ---------- עכשיו / אחר כך ---------- */
+function renderNow(){
+  const c=D.cur>=0?D.sched[D.cur]:null,n=D.next>=0?D.sched[D.next]:null,m=D.m,el=$('now');
+  el.style.setProperty('--c',c&&(c.cat==='meal'||c.cat==='med')?col(c):'var(--amber)');
+  const main=c?`<div class="main"><div class="ic">${icon(c)}</div><div><div class="tt">${title(c)}</div><div class="tm"><span class="num">${esc(c.time)}${c.endTime?' – '+esc(c.endTime):''}</span></div></div></div>
+      <div class="prog"><i style="width:${Math.min(100,Math.round((m-c.s)/Math.max(1,c.e-c.s)*100))}%"></i></div>`
+    :`<div class="main"><div class="ic">🌿</div><div><div class="tt">${t('free')}</div><div class="tm">${t('freeSub')}</div></div></div>`;
+  let nx;
+  if(n){const d=n.s-m,soon=d<=15;
+    nx=`<div class="nextline${soon?' soon':''}" style="--nc:${col(n)}"><span class="k">${t('next')}</span><span class="v">${icon(n)} ${title(n)}</span><span class="in">${inMins(d)}</span></div>`;}
+  else nx=`<div class="nextline"><span class="k">${t('next')}</span><span class="v">🌙 ${t('done')}</span></div>`;
+  const html=`<div class="lab"><i></i>${t('now')}</div>${main}${nx}`;
+  if(el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}
+  // מקטין את שם הפעילות אם הוא לא נכנס
+  const tt=el.querySelector('.tt');if(tt){let fs=3.5;tt.style.fontSize='';while((tt.scrollWidth>tt.clientWidth+1||tt.scrollHeight>tt.clientHeight+2)&&fs>2){fs-=.1;tt.style.fontSize=`calc(var(--u)*${fs.toFixed(1)})`;}}
+}
+
+/* ---------- הארוחה הבאה / התרופות הבאות ---------- */
+function renderMM(){
+  const m=D.m;
+  const pick=cat=>{const a=D.sched.find(i=>i.cat===cat&&i.e>m);if(a)return{it:a,tm:false};const b=D.schedTmr.find(i=>i.cat===cat);return b?{it:b,tm:true}:null;};
+  const tile=(cat,key)=>{const x=pick(cat);if(!x)return '';const i=x.it,d=i.s-m,soon=!x.tm&&d<=15;
+    const when=x.tm?t('tomorrow'):(m>=i.s?t('now'):'');
+    return `<div class="tile${soon?' soon':''}" style="--c:var(--${cat})"><div class="ic">${icon(i)}</div><div><div class="k">${t(key)}</div><div class="tm"><span class="num">${esc(i.time)}</span>${when?`<b class="w">${when}</b>`:''}</div><div class="tt">${title(i)}</div></div></div>`;};
+  const html=tile('meal','nextMeal')+tile('med','nextMed');
+  const el=$('mm');el.style.display=html?'':'none';
+  if(el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}
+}
+
+/* ---------- סדר היום ---------- */
+function renderSched(){
+  $('schedH').textContent=t('sched');
+  const rows=D.sched,m=D.m,box=$('rows');
+  if(!rows.length){const e=`<div class="empty">${t('noSched')}</div>`;if(box.dataset.sig!==e){box.innerHTML=e;box.dataset.sig=e;}return;}
+  const focus=D.cur>=0?D.cur:(D.next>=0?D.next:rows.length-1);
+  const start=Math.max(0,focus-1);
+  const html=rows.slice(start).map((r,k)=>{
+    const idx=start+k;let cls='r',b='';
+    if(r.cat==='meal'||r.cat==='med')cls+=' key';
+    if(r.e<=m)cls+=' past';
+    if(idx===D.cur){cls+=' now';b=t('now');}
+    else if(idx===D.next){const d=r.s-m;if(d<=120)b=inMins(d);}
+    const now=idx===D.cur;
+    const sub=now&&r.endTime?`<div class="sub">${t('until')} <span class="num">${esc(r.endTime)}</span></div><div class="bar"><i style="width:${Math.min(100,Math.round((m-r.s)/Math.max(1,r.e-r.s)*100))}%"></i></div>`:'';
+    return `<div class="${cls}" style="--c:${col(r)}"><div class="t num">${esc(r.time)}</div><div class="rail"><i></i></div><div class="it"><span class="ic">${icon(r)}</span><div class="tx"><div class="ti">${title(r)}</div>${sub}</div>${b?`<span class="b">${b}</span>`:''}</div></div>`;
+  }).join('');
+  if(box.dataset.sig!==html){box.dataset.sig=html;box.innerHTML=html;}
+  fitRows();
+}
+function fitRows(){
+  const box=$('rows'),all=[...box.querySelectorAll('.r')];all.forEach(r=>r.classList.remove('off'));
+  const H=box.clientHeight;
+  all.forEach(r=>r.classList.remove('lastvis'));
+  for(let i=all.length-1;i>1&&all[i].offsetTop+all[i].offsetHeight>H+1;i--)all[i].classList.add('off');
+  const vis=all.filter(r=>!r.classList.contains('off'));if(vis.length&&vis.length===all.length)vis[vis.length-1].classList.add('lastvis');
+}
+
+/* ---------- הצוות ---------- */
+let teamPage=0,teamPages=1;
+function renderTeam(){
+  const S=D.S;$('teamH').textContent=t('team');
+  const st=D.staff.slice().sort((a,b)=>rank(a)-rank(b));
+  const list=[];
+  if(S.headName&&!st.some(s=>s.name===S.headName))list.push({nm:tr(S,'headName'),rl:t('head'),lead:1});
+  st.forEach(s=>list.push({nm:tr(s,'name'),rl:roleT(s.role),hr:s.from||s.to?`${s.from||''}–${s.to||''}`:'',lead:s.name===S.headName||s.role==='מנהל/ת המחלקה'}));
+  if(S.secretaryName&&!st.some(s=>s.name===S.secretaryName))list.push({nm:tr(S,'secretaryName'),rl:t('secretary')});
+  const html=list.length?list.map(p=>`<div class="p${p.lead?' lead':''}"><div class="av" style="--h:${hue(p.nm)}">${esc(initial(p.nm))}</div><div><div class="nm">${esc(p.nm)}</div><div class="rl">${esc(p.rl)}</div></div>${p.hr?`<div class="hr num">${esc(p.hr)}</div>`:''}</div>`).join('')
+    :`<div class="empty">${t('noTeam')}</div>`;
+  const box=$('people'),sz=box.clientHeight+'x'+box.clientWidth;
+  if(box.dataset.sig===html&&box.dataset.sz===sz)return;
+  if(box.dataset.sig!==html){box.dataset.sig=html;box.innerHTML=html;teamPage=0;}
+  box.dataset.sz=sz;
+  // אם הרשימה ארוכה מהמקום – מתחלקת לעמודים שמתחלפים לאט
+  const ps=[...box.querySelectorAll('.p')];ps.forEach(p=>p.classList.remove('hide'));
+  const H=box.clientHeight;let page=0,top=ps.length?ps[0].offsetTop:0;
+  ps.forEach(p=>{if(p.offsetTop+p.offsetHeight-top>H+1){page++;top=p.offsetTop;}p.dataset.pg=page;});
+  teamPages=page+1;if(teamPage>=teamPages)teamPage=0;showTeamPage();
+}
+function showTeamPage(){
+  document.querySelectorAll('#people .p').forEach(p=>p.classList.toggle('hide',+p.dataset.pg!==teamPage));
+  $('pages').innerHTML=teamPages>1?Array.from({length:teamPages},(_,i)=>`<i class="${i===teamPage?'on':''}"></i>`).join(''):'';
+}
+
+/* ---------- הודעות ותמונות ---------- */
+let boardIdx=0,boardSig='';
+function renderBoard(){
+  const cards=[];
+  if(false)D.msgs.forEach(x=>{const tx=tr(x,'text');const fs=tx.length<40?3.2:tx.length<90?2.7:2.3;
+    cards.push(`<div class="card${x.important?' imp':''}"><div class="k">${x.important?'❗ '+t('imp'):'💬 '+t('msg')}</div><div class="msg" data-fs="${fs}" style="font-size:calc(var(--u)*${fs})">${esc(tx)}</div></div>`);});
+  D.images.forEach(p=>{const cap=tr(p,'caption'),raw=rawUrl(p.url);
+    cards.push(`<div class="card photo"><img src="${esc(p.url)}" data-raw="${esc(raw)}" onerror="if(this.dataset.raw&&this.src!==this.dataset.raw)this.src=this.dataset.raw" alt="">${cap?`<div class="cap">${esc(cap)}</div>`:''}</div>`);});
+  if(!cards.length)cards.push(`<div class="card calm"><div class="msg" style="font-size:calc(var(--u)*2.4)">🌿 ${esc(D.quotes[1%D.quotes.length])}</div></div>`);
+  const sig=cards.join('');
+  if(sig===boardSig)return;
+  boardSig=sig;boardIdx%=cards.length;
+  $('board').innerHTML=cards.map((c,i)=>i===boardIdx?c.replace('class="card','class="card on'):c).join('');
+  document.querySelectorAll('#board .card').forEach(fitCard);
+}
+// מקטין את הטקסט עד שהוא נכנס בכרטיס
+function fitCard(c){const m=c.querySelector('.msg');if(!m||!c.clientHeight)return;let fs=parseFloat(m.dataset.fs||2.4);m.style.fontSize=`calc(var(--u)*${fs})`;
+  while(m.scrollHeight>m.clientHeight+1&&fs>1.2){fs-=.1;m.style.fontSize=`calc(var(--u)*${fs.toFixed(2)})`;}}
+function nextBoard(){
+  const cs=document.querySelectorAll('#board .card');if(cs.length<2)return;
+  cs[boardIdx%cs.length].classList.remove('on');boardIdx=(boardIdx+1)%cs.length;fitCard(cs[boardIdx]);cs[boardIdx].classList.add('on');
+}
+
+/* ---------- ביקורים וטלפון ---------- */
+function renderVisit(){
+  const S=D.S,m=D.m,el=$('visit');
+  const open=v=>{const[a,b]=String(v||'').split(/[-–]/).map(x=>toMin((x||'').trim()));return a!=null&&b!=null&&m>=a&&m<b;};
+  const slot=(v,k)=>v?`<span class="${open(v)?'open':''}"><small>${t(k)}${open(v)?' – '+t('openNow'):''}</small><span class="num">${esc(v)}</span></span>`:'';
+  const note=tr(S,'visitNote'),has=S.visitMorning||S.visitEvening;
+  const html=(has?`<div class="k">${t('visits')}</div><div class="slots">${slot(S.visitMorning,'morning')}${slot(S.visitEvening,'evening')}</div>${note?`<div class="note">${esc(note)}</div>`:''}`:'')+
+    (S.phone?`<div class="ph"${has?'':' style="margin:0;padding:0;border:0"'}><span>📞 ${t('phone')}</span><b class="num">${esc(S.phone)}</b></div>`:'');
+  el.style.display=html?'':'none';
+  if(el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}
+}
+
+/* ---------- לילה ---------- */
+function inMorning(now,S){
+  const a=toMin(S.morningStart||'06:00'),b=toMin(S.morningEnd||'07:00');if(a==null||b==null||S.morningOff)return false;
+  const m=nowMin(now);return m>=a&&m<b;
+}
+function inNight(now,S){
+  const s=toMin(S.sleepStart),w=toMin(S.wakeTime);if(s==null||w==null)return false;
+  const m=nowMin(now);return s>w?(m>=s||m<w):(m>=s&&m<w);
+}
+function stars(){const n=$('night');for(let i=0;i<70;i++){const s=document.createElement('i');s.className='st';s.style.cssText=`top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${(Math.random()*4).toFixed(2)}s;opacity:${(.2+Math.random()*.7).toFixed(2)}`;n.appendChild(s);}}
+
+/* ---------- שפה ---------- */
+function applyLang(l){
+  LANG=l;document.documentElement.lang=l;document.documentElement.dir=l==='en'?'ltr':'rtl';
+  ['now','mm','rows','people','visit'].forEach(id=>$(id).dataset.sig='');boardSig='';
+}
+// כל שפה: עמוד "היום" ואז עמוד "הצוות והביקורים", ואז השפה הבאה
+let pageIdx=0;
+function showPage(i){pageIdx=i;document.querySelectorAll('.page').forEach((p,k)=>p.classList.toggle('on',k===i));
+  $('pgdots').innerHTML=[0,1].map(k=>`<i class="${k===i?'on':''}"></i>`).join('');}
+function rotatePage(){
+  if(!$('night').hidden||!$('morning').hidden||flashOn)return;
+  if(pageIdx===0){showPage(1);return;}
+  if(LANGS.length<2){showPage(0);return;}
+  const app=$('app');app.classList.add('fading');
+  setTimeout(()=>{langIdx=(langIdx+1)%LANGS.length;applyLang(LANGS[langIdx]);quoteIdx=0;showPage(0);renderAll();app.classList.remove('fading');},650);
+}
+
+/* ---------- הודעה על כל המסך לכמה שניות ---------- */
+let flashIdx=0,flashOn=false;
+/* ---------- תמונות על כל המסך ---------- */
+let pIdx=0,interKind=0;
+function showPhotos(){
+  if(flashOn||!D||!D.images.length)return false;
+  const n=Math.min(CFG.PHOTOS_PER_ROUND,D.images.length),list=[];
+  for(let k=0;k<n;k++)list.push(D.images[(pIdx+k)%D.images.length]);
+  pIdx=(pIdx+n)%D.images.length;
+  const el=$('pshow'),dur=n*CFG.PHOTO_SECONDS;
+  el.innerHTML=list.map((p,k)=>{const raw=rawUrl(p.url),cap=tr(p,'caption'),u=raw||p.url;
+    return `<div class="ps${k===0?' on':''}"><div class="bg" style="background-image:url('${esc(u)}')"></div><img src="${esc(p.url)}" data-raw="${esc(raw)}" onerror="if(this.dataset.raw&&this.src!==this.dataset.raw)this.src=this.dataset.raw" alt="">${cap?`<div class="cap"><span>${esc(cap)}</span></div>`:''}</div>`;}).join('')+
+    `<div class="pclock num">${hm(new Date())}</div><div class="pbar"><i></i></div>`;
+  const bar=el.querySelector('.pbar i');requestAnimationFrame(()=>{bar.style.transition=`width ${dur}s linear`;bar.style.width='100%';});
+  flashOn=true;el.classList.add('on');
+  const ps=el.querySelectorAll('.ps');let i=0;
+  const tm=setInterval(()=>{if(i>=ps.length-1)return;ps[i].classList.remove('on');i++;ps[i].classList.add('on');},CFG.PHOTO_SECONDS*1000);
+  setTimeout(()=>{clearInterval(tm);el.classList.remove('on');setTimeout(()=>{flashOn=false;el.innerHTML='';},1300);},dur*1000);
+  return true;
+}
+// כל פעם משהו אחר על כל המסך: הודעה, אחר כך תמונות, וחוזר חלילה
+function interlude(){
+  if(flashOn||!D||!$('night').hidden||!$('morning').hidden||$('app').classList.contains('fading'))return;
+  interKind=1-interKind;
+  if(interKind===1){if(!showPhotos())showFlash();}
+  else{if(D.msgs.length)showFlash();else showPhotos();}
+}
+function showFlash(){
+  if(flashOn||!D||!D.msgs.length||!$('night').hidden||!$('morning').hidden||$('app').classList.contains('fading'))return;
+  const x=D.msgs[flashIdx%D.msgs.length];flashIdx++;
+  const f=$('flash'),fx=$('fx'),tx=tr(x,'text');
+  f.classList.toggle('imp',!!x.important);
+  $('fk').textContent=(x.important?'❗ '+t('imp'):'💬 '+t('msg'));
+  $('fc').textContent=hm(new Date());
+  fx.textContent=tx;
+  let fs=tx.length<30?8:tx.length<70?6.5:tx.length<140?5:4;fx.style.fontSize=`calc(var(--u)*${fs})`;
+  const box=fx.parentElement;while((fx.scrollHeight>box.clientHeight||fx.scrollWidth>box.clientWidth)&&fs>2){fs-=.2;fx.style.fontSize=`calc(var(--u)*${fs.toFixed(1)})`;}
+  const bar=$('fbar');bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition=`width ${CFG.FLASH_SECONDS}s linear`;bar.style.width='100%';
+  flashOn=true;f.classList.add('on');
+  setTimeout(()=>{f.classList.remove('on');setTimeout(()=>flashOn=false,1200);},CFG.FLASH_SECONDS*1000);
+}
+
+/* ---------- ציור ---------- */
+let quoteIdx=0;
+function renderAll(){
+  const now=new Date();D=derive(now);
+  if(!LANGS.includes(LANG)){langIdx=0;applyLang(LANGS[0]);D=derive(now);}
+  const morning=inMorning(now,D.S),night=!morning&&inNight(now,D.S);
+  if(night||morning){const nl=LANGS[Math.floor(Date.now()/20000)%LANGS.length];if(nl!==LANG){applyLang(nl);D=derive(now);}}
+  renderSky(now);renderNow();renderMM();renderSched();renderTeam();renderBoard();renderVisit();
+  $('quote').textContent=D.quotes[quoteIdx%D.quotes.length];
+  $('langs').innerHTML=LANGS.length>1?LANGS.map(l=>`<b class="${l===LANG?'on':''}">${{he:'עברית',ar:'عربي',en:'English'}[l]}</b>`).join(''):'';
+  $('demo').textContent=mode?t(mode):'';
+  $('night').hidden=!night;
+  $('morning').hidden=!morning;
+  if(morning){
+    $('mgt').textContent=t('morningT');
+    $('mmsg').textContent=tr(D.S,'morningMessage')||t('morningMsg');
+    // מה מחכה הבוקר: שתי הפעילויות הקרובות
+    const up=D.sched.filter(i=>i.e>D.m&&i.cat!=='visit').slice(0,2);
+    $('mnext').innerHTML=up.map(i=>`<div>${icon(i)} ${title(i)} <b class="num">${esc(i.time)}</b></div>`).join('');
+  }
+  if(night){
+    $('ngt').textContent=t('night');
+    $('nmsg').textContent=tr(D.S,'nightMessage')||t('nightMsg');
+    $('nsub').innerHTML=`${t('rest')} <span class="num">${esc(D.S.sleepStart)}–${esc(D.S.wakeTime)}</span>`+(D.S.phone?`<br>${t('phone')} <span class="num">${esc(D.S.phone)}</span>`:'');
+  }
+}
+function tick(){
+  const now=new Date(),tm=`${pad(now.getHours())}<span class="c">:</span>${pad(now.getMinutes())}`;
+  if($('clock').dataset.t!==tm){$('clock').dataset.t=tm;$('clock').innerHTML=tm;$('nclock').textContent=hm(now);$('mclock').textContent=hm(now);if(D)renderAll();}
+}
+function rotateQuote(){
+  if(!D)return;const q=$('quote');q.classList.add('fade');
+  setTimeout(()=>{quoteIdx=(quoteIdx+1)%D.quotes.length;q.textContent=D.quotes[quoteIdx];q.classList.remove('fade');},1400);
+}
+
+(async function start(){
+  stars();await loadData();applyLang('he');renderAll();tick();
+  // אחרי שהגופן נטען – מודדים מחדש
+  const refit=()=>{boardSig='';$('people').dataset.sz='';renderAll();};
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);
+  addEventListener('resize',refit);
+  loadHebDate().then(renderAll);loadShabbat().then(renderAll);loadWeather().then(renderAll);
+  setInterval(tick,1000);
+  setInterval(nextBoard,CFG.BOARD_SECONDS*1000);
+  setInterval(()=>{if(teamPages>1){teamPage=(teamPage+1)%teamPages;showTeamPage();}},CFG.TEAM_SECONDS*1000);
+  setInterval(rotateQuote,CFG.QUOTE_SECONDS*1000);
+  showPage(0);
+  setInterval(rotatePage,CFG.PAGE_SECONDS*1000);
+  setTimeout(()=>{interlude();setInterval(interlude,CFG.FLASH_EVERY*1000);},20000);
+  setInterval(async()=>{await loadData();renderAll();},CFG.REFRESH_SECONDS*1000);
+  setInterval(()=>{loadHebDate();loadWeather();},30*60*1000);
+  setInterval(loadShabbat,6*3600*1000);
+  setTimeout(()=>location.reload(),6*3600*1000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+ "updated": "2026-10-16T00:00:00Z",
+ "items": [
+  {
+   "type": "settings",
+   "id": "settings",
+   "wardName": "",
+   "phone": "",
+   "visitMorning": "10:00-12:00",
+   "visitEvening": "16:00-19:00",
+   "sleepStart": "22:30",
+   "wakeTime": "06:30",
+   "morningStart": "06:00",
+   "morningEnd": "07:00",
+   "langs": [
+    "he",
+    "ar",
+    "en"
+   ]
+  }
+ ]
+}
