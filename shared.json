@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:51:58.900Z",
+ "updated": "2026-10-20T18:57:17.371Z",
  "items": [
   {
    "type": "ward",
@@ -84,6 +84,26 @@
    "id": "i8u0air3y",
    "by": "ezz",
    "updated": "2026-10-20T18:51:58.392Z"
+  },
+  {
+   "type": "schedule",
+   "title": "השכמה ומקלחת",
+   "title_ar": "الاستيقاظ والاستحمام",
+   "title_en": "wake-up & shawer",
+   "time": "06:30",
+   "endTime": "07:30",
+   "cat": "other",
+   "icon": "🚿",
+   "rec": "daily",
+   "days": [],
+   "start": "",
+   "end": "",
+   "wards": [
+    "*"
+   ],
+   "id": "p2lnm6g0x",
+   "by": "ezz",
+   "updated": "2026-10-20T18:57:16.907Z"
   }
  ]
 }
