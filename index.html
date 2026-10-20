@@ -173,6 +173,16 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 .p .hr{margin-inline-start:auto;font-size:calc(var(--u)*2);color:var(--muted);white-space:nowrap;flex:none}
 .p.lead .av{background:var(--ink);color:#fff}
 .p.lead .nm{font-weight:600}
+/* הרבה עובדים: שתי עמודות וכרטיס קומפקטי */
+.people.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr);row-gap:0}
+.people.two .p{gap:calc(var(--u)*1);padding:calc(var(--u)*.7) 0}
+.people.two .av{width:calc(var(--u)*3.8);height:calc(var(--u)*3.8);font-size:calc(var(--u)*1.8)}
+.people.two .nm{font-size:calc(var(--u)*2)}
+.people.two .rl{font-size:calc(var(--u)*1.4);white-space:normal;line-height:1.25}
+.people.two .hr{display:none}
+.hr2{display:none}
+.people.two .hr2{display:inline;white-space:nowrap}
+.people.two .hr2 .num{direction:ltr;unicode-bidi:isolate}
 .pages{display:flex;gap:6px;justify-content:center;align-items:center;height:calc(var(--u)*1.4);flex:none}
 .pages i{width:calc(var(--u)*.6);height:calc(var(--u)*.6);border-radius:50%;background:var(--line)}
 .pages i.on{background:var(--muted)}
@@ -654,7 +664,7 @@ function renderTeam(){
   if(S.headName&&!st.some(s=>s.name===S.headName))list.push({nm:tr(S,'headName'),rl:t('head'),lead:1});
   st.forEach(s=>list.push({nm:tr(s,'name'),rl:roleT(s.role),hr:s.from||s.to?`${s.from||''}–${s.to||''}`:'',lead:s.name===S.headName||s.role==='מנהל/ת המחלקה'}));
   if(S.secretaryName&&!st.some(s=>s.name===S.secretaryName))list.push({nm:tr(S,'secretaryName'),rl:t('secretary')});
-  const html=list.length?list.map(p=>`<div class="p${p.lead?' lead':''}"><div class="av" style="--h:${hue(p.nm)}">${esc(initial(p.nm))}</div><div><div class="nm">${esc(p.nm)}</div><div class="rl">${esc(p.rl)}</div></div>${p.hr?`<div class="hr num">${esc(p.hr)}</div>`:''}</div>`).join('')
+  const html=list.length?list.map(p=>`<div class="p${p.lead?' lead':''}"><div class="av" style="--h:${hue(p.nm)}">${esc(initial(p.nm))}</div><div><div class="nm">${esc(p.nm)}</div><div class="rl">${esc(p.rl)}${p.hr?` <span class="hr2">· <span class="num">${esc(p.hr)}</span></span>`:''}</div></div>${p.hr?`<div class="hr num">${esc(p.hr)}</div>`:''}</div>`).join('')
     :`<div class="empty">${t('noTeam')}</div>`;
   const box=$('people'),sz=box.clientHeight+'x'+box.clientWidth;
   if(box.dataset.sig===html&&box.dataset.sz===sz)return;
@@ -662,6 +672,9 @@ function renderTeam(){
   box.dataset.sz=sz;
   // אם הרשימה ארוכה מהמקום – מתחלקת לעמודים שמתחלפים לאט
   const ps=[...box.querySelectorAll('.p')];ps.forEach(p=>p.classList.remove('hide'));
+  // לא נכנס בעמודה אחת? עוברים לשתי עמודות (רק כשיש מספיק רוחב)
+  box.classList.remove('two');
+  if(box.scrollHeight>box.clientHeight+1&&box.clientWidth>innerWidth*.3)box.classList.add('two');
   const H=box.clientHeight;let page=0,top=ps.length?ps[0].offsetTop:0;
   ps.forEach(p=>{if(p.offsetTop+p.offsetHeight-top>H+1){page++;top=p.offsetTop;}p.dataset.pg=page;});
   teamPages=page+1;if(teamPage>=teamPages)teamPage=0;showTeamPage();
@@ -725,7 +738,12 @@ function applyLang(l){
 }
 // כל שפה: עמוד "היום" ואז עמוד "הצוות והביקורים", ואז השפה הבאה
 let pageIdx=0;
-function showPage(i){pageIdx=i;document.querySelectorAll('.page').forEach((p,k)=>p.classList.toggle('on',k===i));
+let teamTimer=0;
+function showPage(i){
+  // בכל כניסה לעמוד הצוות מתחילים מהעמוד הראשון של הרשימה
+  if(i===1&&pageIdx!==1&&typeof teamPages!=='undefined'){teamPage=0;showTeamPage();clearInterval(teamTimer);
+    teamTimer=setInterval(()=>{if(teamPages>1){teamPage=(teamPage+1)%teamPages;showTeamPage();}},CFG.TEAM_SECONDS*1000);}
+  pageIdx=i;document.querySelectorAll('.page').forEach((p,k)=>p.classList.toggle('on',k===i));
   $('pgdots').innerHTML=[0,1].map(k=>`<i class="${k===i?'on':''}"></i>`).join('');}
 function rotatePage(){
   if(!$('night').hidden||!$('morning').hidden||flashOn)return;
@@ -825,10 +843,11 @@ function rotateQuote(){
   loadHebDate().then(renderAll);loadShabbat().then(renderAll);loadWeather().then(renderAll);
   setInterval(tick,1000);
   setInterval(nextBoard,CFG.BOARD_SECONDS*1000);
-  setInterval(()=>{if(teamPages>1){teamPage=(teamPage+1)%teamPages;showTeamPage();}},CFG.TEAM_SECONDS*1000);
   setInterval(rotateQuote,CFG.QUOTE_SECONDS*1000);
   showPage(0);
-  setInterval(rotatePage,CFG.PAGE_SECONDS*1000);
+  // עמוד הצוות נשאר מספיק זמן כדי שכל השמות יוצגו
+  (function pageLoop(){const d=(pageIdx===1&&teamPages>1)?Math.max(CFG.PAGE_SECONDS,teamPages*CFG.TEAM_SECONDS):CFG.PAGE_SECONDS;
+    setTimeout(()=>{rotatePage();pageLoop();},d*1000);})();
   setTimeout(interLoop,20000);
   setInterval(async()=>{await loadData();renderAll();},CFG.REFRESH_SECONDS*1000);
   setInterval(()=>{loadHebDate();loadWeather();},30*60*1000);
