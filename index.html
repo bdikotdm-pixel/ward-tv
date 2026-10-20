@@ -609,9 +609,10 @@ function renderBoard(){
   const cards=[];
   if(false)D.msgs.forEach(x=>{const tx=tr(x,'text');const fs=tx.length<40?3.2:tx.length<90?2.7:2.3;
     cards.push(`<div class="card${x.important?' imp':''}"><div class="k">${x.important?'❗ '+t('imp'):'💬 '+t('msg')}</div><div class="msg" data-fs="${fs}" style="font-size:calc(var(--u)*${fs})">${esc(tx)}</div></div>`);});
-  D.images.forEach(p=>{const cap=tr(p,'caption'),raw=rawUrl(p.url);
-    cards.push(`<div class="card photo"><img src="${esc(p.url)}" data-raw="${esc(raw)}" onerror="if(this.dataset.raw&&this.src!==this.dataset.raw)this.src=this.dataset.raw" alt="">${cap?`<div class="cap">${esc(cap)}</div>`:''}</div>`);});
-  if(!cards.length)cards.push(`<div class="card calm"><div class="msg" style="font-size:calc(var(--u)*2.4)">🌿 ${esc(D.quotes[1%D.quotes.length])}</div></div>`);
+  // התמונות מוצגות רק במסך מלא – כאן רק משפטים מרגיעים
+  const qs=D.quotes.length?D.quotes:[''];
+  for(let k=0;k<Math.min(qs.length,6);k++){const q=qs[(k+1)%qs.length];if(q)cards.push(`<div class="card calm"><div class="msg" data-fs="2.4" style="font-size:calc(var(--u)*2.4)">🌿 ${esc(q)}</div></div>`);}
+  if(!cards.length)cards.push(`<div class="card calm"><div class="msg" style="font-size:calc(var(--u)*2.4)">🌿</div></div>`);
   const sig=cards.join('');
   if(sig===boardSig)return;
   boardSig=sig;boardIdx%=cards.length;
