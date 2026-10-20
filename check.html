@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>בדיקת המערכת</title>
+<style>
+body{font-family:Rubik,Arial,sans-serif;background:#EEF3F1;color:#16302C;margin:0;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:22px 14px 50px;display:flex;flex-direction:column;gap:12px}
+h1{font-size:24px}
+.c{background:#fff;border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.c i{font-style:normal;font-size:22px;line-height:1.2}
+.c b{display:block}
+.c .d{color:#5D726E;font-size:14px}
+.c .fix{background:#FFF4E2;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+.c code{direction:ltr;unicode-bidi:isolate;background:#F1F5F3;padding:1px 6px;border-radius:6px}
+.ok{border-inline-start:6px solid #2F8A68}.bad{border-inline-start:6px solid #C04E66}.warn{border-inline-start:6px solid #E39B2D}
+form{background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input{font:inherit;border:1px solid #DCE6E2;border-radius:10px;padding:9px 12px;flex:1;min-width:160px}
+button{font:inherit;border:0;border-radius:10px;padding:9px 16px;background:#16302C;color:#fff;cursor:pointer}
+</style>
+<script>
+// תופס שגיאות בטעינת config.js (למשל פסיק כפול)
+window.__cfgErr=null;
+window.addEventListener('error',e=>{if(e.filename&&/config\.js/.test(e.filename))window.__cfgErr={msg:e.message,line:e.lineno};},true);
+</script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>🩺 בדיקת המערכת</h1>
+  <div id="out"></div>
+  <form id="f"><span>בדיקת קוד הצוות:</span><input id="code" type="password" placeholder="קוד צוות"><input id="wid" placeholder="מחלקה (ריק = ראשית, central = ניהול כללי)" style="direction:ltr"><button>בדיקה</button></form>
+  <div id="out2"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function row(box,st,title,desc,fix){$(box).insertAdjacentHTML('beforeend',`<div class="c ${st}"><i>${st==='ok'?'✅':st==='bad'?'❌':'⚠️'}</i><div><b>${title}</b>${desc?`<div class="d">${desc}</div>`:''}${fix?`<div class="fix">🔧 ${fix}</div>`:''}</div></div>`);}
+const C=window.CONFIG;
+
+async function run(){
+  // 1. config.js
+  if(window.__cfgErr||!C){
+    row('out','bad','config.js לא נטען',window.__cfgErr?`שגיאה בשורה ${window.__cfgErr.line}: ${esc(window.__cfgErr.msg)}`:'הקובץ חסר או שבור',
+      'פתחו את config.js ב-GitHub (✏️). בדקו בשורה הזו: פסיק כפול <code>},,</code> → צריך <code>},</code> · מירכאות חסרות · סוגר <code>}</code> חסר. בלי config.js תקין כל המערכת עובדת ב"מצב הדגמה".');
+    return;
+  }
+  row('out','ok','config.js נטען בהצלחה');
+  // 2. OWNER/REPO
+  if(!C.OWNER||!C.REPO){row('out','bad','חסרים OWNER או REPO','', `ב-config.js: <code>OWNER: "${esc(location.hostname.split('.')[0])}",</code> ו-<code>REPO: "${esc(location.pathname.split('/')[1]||'ward-tv')}",</code>`);return;}
+  const hostOwner=location.hostname.endsWith('github.io')?location.hostname.split('.')[0]:'';
+  if(hostOwner&&hostOwner.toLowerCase()!==C.OWNER.toLowerCase())row('out','bad',`OWNER לא תואם לאתר`,`ב-config: ${esc(C.OWNER)} · האתר: ${esc(hostOwner)}`,`שנו ל-<code>OWNER: "${esc(hostOwner)}",</code>`);
+  else row('out','ok',`OWNER / REPO: ${esc(C.OWNER)} / ${esc(C.REPO)}`);
+  // 3. TOKEN_ENC
+  let enc=C.TOKEN_ENC;try{if(typeof enc==='string'&&enc)enc=JSON.parse(enc);}catch(e){enc=null;}
+  if(!enc||!enc.s||!enc.i||!enc.c)row('out','bad','TOKEN_ENC חסר או לא תקין','בלי זה הצוות לא יכול לשמור',"הריצו את setup.html והדביקו את השורה שמתקבלת.");
+  else row('out','ok','TOKEN_ENC קיים (הטוקן מוצפן)');
+  // 4. repo public + files
+  try{
+    const r=await fetch(`https://api.github.com/repos/${C.OWNER}/${C.REPO}`);
+    if(r.status===404)row('out','bad','ה-repo לא נמצא או שהוא פרטי','',`ודאו שה-repo נקרא <code>${esc(C.REPO)}</code> ושהוא Public (Settings ← General ← Danger Zone ← Change visibility).`);
+    else if(r.ok){const j=await r.json();row('out','ok',`ה-repo קיים (${j.private?'פרטי':'ציבורי'})`);}
+    else row('out','warn','לא ניתן לבדוק את ה-repo כרגע',`GitHub החזיר ${r.status} (ייתכן עומס – נסו שוב בעוד כמה דקות)`);
+  }catch(e){row('out','warn','אין גישה ל-api.github.com מהרשת הזו','הטלוויזיה תנסה דרך raw.githubusercontent.com','אם זה ברשת של בית החולים – בקשו ממערכות מידע לאשר את api.github.com ו-raw.githubusercontent.com');}
+  // 5. data files
+  for(const [p,label,must] of [['data.json','קובץ המידע של המחלקה הראשית',true],['shared.json','קובץ הניהול הכללי',false]]){
+    try{const r=await fetch(`https://raw.githubusercontent.com/${C.OWNER}/${C.REPO}/${C.BRANCH||'main'}/${p}?t=${Date.now()}`,{cache:'no-store'});
+      if(r.ok){const j=await r.json();row('out','ok',`${label} (${p}) – ${(j.items||[]).length} פריטים`);}
+      else row('out',must?'bad':'warn',`${label} (${p}) לא נמצא`,must?'':'ייווצר לבד בשמירה הראשונה בניהול הכללי',must?'העלו את data.json ל-repo':'');
+    }catch(e){row('out','warn',`לא ניתן לקרוא את ${p}`,'');}
+  }
+  // 6. wards
+  const W=Object.keys(C.WARDS||{});
+  row('out','ok',`מחלקות נוספות ב-config: ${W.length?W.map(esc).join(', '):'אין'}`,'',W.length?'':'כדי שמחלקה תופיע ב-wards.html ובניהול הכללי – הוסיפו אותה ל-WARDS (ראו README)');
+  // 7. other files
+  for(const f of ['index.html','admin.html','checkin.html','gh.js','ward.js','wards.html']){
+    try{const r=await fetch(f+'?t='+Date.now(),{method:'HEAD',cache:'no-store'});if(!r.ok)row('out','bad',`הקובץ ${f} חסר`,'','העלו אותו ל-repo');}catch(e){}
+  }
+  row('out','ok','שאר הקבצים נבדקו');
+}
+
+// בדיקת קוד: מפענח את הטוקן ובודק שיש הרשאת כתיבה
+$('f').onsubmit=async e=>{
+  e.preventDefault();$('out2').innerHTML='';
+  if(!C)return row('out2','bad','קודם צריך לתקן את config.js');
+  const wid=$('wid').value.trim().toLowerCase();
+  let enc=wid==='central'?(C.CENTRAL_TOKEN_ENC||C.TOKEN_ENC):(wid&&C.WARDS&&C.WARDS[wid]&&C.WARDS[wid].TOKEN_ENC)||C.TOKEN_ENC;
+  try{if(typeof enc==='string')enc=JSON.parse(enc);}catch(_){}
+  let tok;
+  try{
+    const ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+    const km=await crypto.subtle.importKey('raw',new TextEncoder().encode($('code').value),'PBKDF2',false,['deriveKey']);
+    const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:ub(enc.s),iterations:enc.n||310000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+    tok=new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(enc.i)},key,ub(enc.c)));
+    row('out2','ok','הקוד נכון');
+  }catch(err){return row('out2','bad','הקוד לא נכון למחלקה הזו','','בדקו שהקלדתם את הקוד שבחרתם ב-setup.html (אותיות גדולות/קטנות חשובות).');}
+  try{
+    const r=await fetch(`https://api.github.com/repos/${C.OWNER}/${C.REPO}`,{headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'}});
+    if(r.status===401)row('out2','bad','הטוקן פג תוקף או נמחק','','צרו טוקן חדש והריצו שוב את setup.html');
+    else if(r.ok){const j=await r.json();if(j.permissions&&j.permissions.push)row('out2','ok','לטוקן יש הרשאת כתיבה – אפשר לשמור ✓');
+      else row('out2','bad','לטוקן אין הרשאת כתיבה','','בהגדרות הטוקן: Repository access ← ward-tv, ו-Contents ← Read and write');}
+    else row('out2','bad','הטוקן לא מקבל גישה ל-repo',`GitHub החזיר ${r.status}`,'בהגדרות הטוקן בחרו את ה-repo הנכון (Only select repositories)');
+  }catch(e){row('out2','warn','אין גישה ל-GitHub מהרשת הזו','','נסו מרשת אחרת / בקשו לאשר api.github.com');}
+};
+run();
+</script>
+</body>
+</html>
