@@ -63,25 +63,49 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 .pgdots i.on{background:var(--ink);width:calc(var(--u)*2);border-radius:2vh}
 /* ===== עמודה מרכזית ===== */
 .center{display:flex;flex-direction:column;gap:calc(var(--u)*1.4);min-height:0}
-.nowcard{--c:var(--amber);flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--panel);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.4) calc(var(--u)*2.4);position:relative;overflow:hidden}
-.nowcard::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:calc(var(--u)*.8);background:var(--c)}
-.nowcard .lab{font-size:calc(var(--u)*2);font-weight:600;color:var(--c);display:flex;align-items:center;gap:calc(var(--u)*.8)}
-.nowcard .lab i{width:calc(var(--u)*1);height:calc(var(--u)*1);border-radius:50%;background:var(--c);animation:breathe 3.2s ease-in-out infinite}
+.nowcard{--c:var(--amber);flex:1;min-height:0;container:now/size;display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*1.6) calc(var(--u)*2);position:relative;overflow:hidden;isolation:isolate;
+  background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--c) 16%,#fff) 0%,#fff 62%),#fff;
+  box-shadow:0 calc(var(--u)*.4) calc(var(--u)*2) rgba(22,48,44,.06)}
+/* כתמי אור רכים שזזים לאט */
+.nowcard::before,.nowcard::after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(calc(var(--u)*2.4));opacity:.45;background:color-mix(in srgb,var(--c) 40%,#fff)}
+.nowcard::before{width:45%;aspect-ratio:1;top:-14%;inset-inline-start:-12%;animation:blob 18s ease-in-out infinite}
+.nowcard::after{width:35%;aspect-ratio:1;bottom:18%;inset-inline-end:-10%;opacity:.28;animation:blob 22s ease-in-out infinite reverse}
+@keyframes blob{50%{transform:translate(12%,10%) scale(1.15)}}
+.nowcard .lab{font-size:calc(var(--u)*1.7);font-weight:600;color:var(--c);display:inline-flex;align-items:center;gap:calc(var(--u)*.7);background:color-mix(in srgb,var(--c) 13%,#fff);padding:calc(var(--u)*.35) calc(var(--u)*1.2);border-radius:5vh;letter-spacing:.02em}
+.nowcard .lab i{width:calc(var(--u)*.8);height:calc(var(--u)*.8);border-radius:50%;background:var(--c);animation:breathe 3.2s ease-in-out infinite}
 @keyframes breathe{50%{transform:scale(1.6);opacity:.35}}
-.nowcard .main{display:flex;align-items:center;gap:calc(var(--u)*1.6);margin-top:calc(var(--u)*.6);min-width:0}
-.nowcard .main>div:last-child{min-width:0}
-.nowcard .ic{font-size:calc(var(--u)*5.4);line-height:1}
-.nowcard .tt{font-size:calc(var(--u)*3.5);font-weight:600;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.nowcard .tm{font-size:calc(var(--u)*2.1);color:var(--muted);margin-top:calc(var(--u)*.3)}
-.nowcard .prog{height:calc(var(--u)*.5);background:var(--line);border-radius:1vh;margin-top:calc(var(--u)*.9);overflow:hidden}
-.nowcard .prog i{display:block;height:100%;background:var(--c);border-radius:1vh;transition:width 2s}
-.nextline{display:flex;flex-wrap:wrap;row-gap:calc(var(--u)*.4);align-items:center;gap:calc(var(--u)*1.2);margin-top:calc(var(--u)*1);padding-top:calc(var(--u)*1);border-top:1px solid var(--line);font-size:calc(var(--u)*2);white-space:nowrap;min-width:0}
-.nextline .k{color:var(--muted);font-weight:500;flex:none}
-.nextline .v{order:3;flex:1 1 100%;font-weight:600;min-width:0;white-space:normal;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.nextline .in{margin-inline-start:auto;font-weight:600;color:var(--nc,var(--activity));white-space:nowrap}
-.nextline.soon{background:color-mix(in srgb,var(--nc) 9%,#fff);margin-inline:calc(var(--u)*-2.4) calc(var(--u)*-2.4);padding-inline:calc(var(--u)*2.4);padding-bottom:calc(var(--u)*1.4);margin-bottom:calc(var(--u)*-1.4);border-top-color:transparent}
-.nextline.soon .in{animation:soft 2.4s ease-in-out infinite}
-@keyframes soft{50%{opacity:.45}}
+.nowcard .hero{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow:hidden;gap:calc(var(--u)*.7);padding:calc(var(--u)*1.1)}
+/* עיגול האייקון עם טבעת התקדמות */
+.orb{--p:0%;position:relative;flex:none;width:min(calc(var(--u)*10),26cqh);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--c) var(--p),color-mix(in srgb,var(--c) 16%,#fff) 0);transition:--p 2s}
+.orb::before{content:"";position:absolute;inset:calc(var(--u)*.55);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,color-mix(in srgb,var(--c) 10%,#fff));box-shadow:0 calc(var(--u)*.3) calc(var(--u)*1.2) color-mix(in srgb,var(--c) 25%,transparent) inset}
+.orb::after{content:"";position:absolute;inset:calc(var(--u)*-.9);border-radius:50%;border:calc(var(--u)*.15) solid color-mix(in srgb,var(--c) 30%,transparent);animation:halo2 4s ease-in-out infinite}
+@keyframes halo2{0%,100%{transform:scale(.94);opacity:0}50%{transform:scale(1.04);opacity:1}}
+.orb span{position:relative;font-size:min(calc(var(--u)*4.6),12cqh);line-height:1;animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(calc(var(--u)*-.35))}}
+.nowcard .txt{min-width:0;max-width:100%;display:flex;flex-direction:column;align-items:inherit;gap:calc(var(--u)*.3)}
+/* כרטיס נמוך ורחב – האייקון בצד והטקסט לידו */
+@container now (min-aspect-ratio: 6/5){
+  .nowcard .hero{flex-direction:row;gap:calc(var(--u)*2);text-align:start;justify-content:flex-start;padding-inline:calc(var(--u)*1.3)}
+  .nowcard .txt{align-items:flex-start;flex:1}
+  .orb{width:min(calc(var(--u)*9),40cqh)}
+  .orb span{font-size:min(calc(var(--u)*4.2),18cqh)}
+}
+.orb.free{background:color-mix(in srgb,var(--c) 18%,#fff)}
+.nowcard .tt{max-width:100%;font-size:calc(var(--u)*3.6);font-weight:600;line-height:1.1;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nowcard .tm{font-size:calc(var(--u)*1.9);color:var(--muted);line-height:1.25}
+.nowcard .tm .num{font-weight:600;color:var(--c);direction:ltr;unicode-bidi:isolate;display:inline-block}
+/* הבא בתור */
+.nx{--nc:var(--activity);flex:none;width:100%;display:flex;align-items:center;gap:calc(var(--u)*1.1);text-align:start;background:color-mix(in srgb,var(--nc) 7%,#F6F9F8);border:1px solid color-mix(in srgb,var(--nc) 16%,var(--line));border-radius:calc(var(--u)*1.4);padding:calc(var(--u)*.9) calc(var(--u)*1.2);min-width:0}
+.nx .nic{flex:none;width:calc(var(--u)*3.8);height:calc(var(--u)*3.8);border-radius:50%;display:grid;place-items:center;font-size:calc(var(--u)*2.1);background:#fff;box-shadow:0 0 0 calc(var(--u)*.2) color-mix(in srgb,var(--nc) 25%,#fff)}
+.nx .nt{flex:1;min-width:0}
+.nx .top{display:flex;align-items:center;gap:calc(var(--u)*.8);margin-bottom:calc(var(--u)*.25)}
+.nx .k{font-size:calc(var(--u)*1.35);color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.nx .v{font-size:calc(var(--u)*2);font-weight:600;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nx .in{flex:none;font-size:calc(var(--u)*1.3);font-weight:600;color:#fff;background:var(--nc);padding:calc(var(--u)*.2) calc(var(--u)*.8);border-radius:5vh;white-space:nowrap}
+.nx.soon{box-shadow:0 0 0 calc(var(--u)*.2) var(--nc)}
+.nx.soon .in{animation:soft 2.4s ease-in-out infinite}
+@keyframes soft{50%{opacity:.5}}
 
 .mm{flex:none;display:flex;flex-direction:column;gap:calc(var(--u)*1.4)}
 .tile{--c:var(--meal);background:var(--panel);border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*1.2) calc(var(--u)*1.6);display:flex;align-items:center;gap:calc(var(--u)*1.2);min-width:0}
@@ -523,17 +547,17 @@ function renderSky(now){
 function renderNow(){
   const c=D.cur>=0?D.sched[D.cur]:null,n=D.next>=0?D.sched[D.next]:null,m=D.m,el=$('now');
   el.style.setProperty('--c',c&&(c.cat==='meal'||c.cat==='med')?col(c):'var(--amber)');
-  const main=c?`<div class="main"><div class="ic">${icon(c)}</div><div><div class="tt">${title(c)}</div><div class="tm"><span class="num">${esc(c.time)}${c.endTime?' – '+esc(c.endTime):''}</span></div></div></div>
-      <div class="prog"><i style="width:${Math.min(100,Math.round((m-c.s)/Math.max(1,c.e-c.s)*100))}%"></i></div>`
-    :`<div class="main"><div class="ic">🌿</div><div><div class="tt">${t('free')}</div><div class="tm">${t('freeSub')}</div></div></div>`;
+  const pct=c?Math.min(100,Math.max(3,Math.round((m-c.s)/Math.max(1,c.e-c.s)*100))):0;
+  const main=c?`<div class="hero"><div class="orb" style="--p:${pct}%"><span>${icon(c)}</span></div><div class="txt"><div class="tt">${title(c)}</div><div class="tm"><span class="num">${esc(c.time)}${c.endTime?' – '+esc(c.endTime):''}</span></div></div></div>`
+    :`<div class="hero"><div class="orb free"><span>🌿</span></div><div class="txt"><div class="tt">${t('free')}</div><div class="tm">${t('freeSub')}</div></div></div>`;
   let nx;
   if(n){const d=n.s-m,soon=d<=15;
-    nx=`<div class="nextline${soon?' soon':''}" style="--nc:${col(n)}"><span class="k">${t('next')}</span><span class="v">${icon(n)} ${title(n)}</span><span class="in">${inMins(d)}</span></div>`;}
-  else nx=`<div class="nextline"><span class="k">${t('next')}</span><span class="v">🌙 ${t('done')}</span></div>`;
+    nx=`<div class="nx${soon?' soon':''}" style="--nc:${col(n)}"><span class="nic">${icon(n)}</span><div class="nt"><div class="top"><span class="k">${t('next')}</span><span class="in">${inMins(d)}</span></div><div class="v">${title(n)}</div></div></div>`;}
+  else nx=`<div class="nx"><span class="nic">🌙</span><div class="nt"><div class="k">${t('next')}</div><div class="v">${t('done')}</div></div></div>`;
   const html=`<div class="lab"><i></i>${t('now')}</div>${main}${nx}`;
   if(el.dataset.sig!==html){el.dataset.sig=html;el.innerHTML=html;}
   // מקטין את שם הפעילות אם הוא לא נכנס
-  const tt=el.querySelector('.tt');if(tt){let fs=3.5;tt.style.fontSize='';while((tt.scrollWidth>tt.clientWidth+1||tt.scrollHeight>tt.clientHeight+2)&&fs>2){fs-=.1;tt.style.fontSize=`calc(var(--u)*${fs.toFixed(1)})`;}}
+  const tt=el.querySelector('.tt'),hero=el.querySelector('.hero');if(tt){let fs=3.6;tt.style.fontSize='';while((tt.scrollWidth>tt.clientWidth+1||tt.scrollHeight>tt.clientHeight+2||hero.scrollHeight>hero.clientHeight+1)&&fs>1.8){fs-=.1;tt.style.fontSize=`calc(var(--u)*${fs.toFixed(1)})`;}}
 }
 
 /* ---------- הארוחה הבאה / התרופות הבאות ---------- */
