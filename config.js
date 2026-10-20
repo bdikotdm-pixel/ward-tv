@@ -7,7 +7,7 @@ window.CONFIG = {
   OWNER: "bdikotdm-pixel",              // שם המשתמש ב-GitHub
   REPO: "ward-tv",               // שם ה-repo
   BRANCH: "main",
-  TOKEN_ENC: {"s":"ihWbXleck1Czvnk3HrBWYA==","i":"RMrXoamV47udIt58","c":"oO/GK0uORZMqT4+u3An5/LPk7HBwop7eJrDjiYVVvd9jJp0Ev1h8P7aLorsD8jd/IL1ms5Bd/2nm0f9ZquK/U1tLHFe2Q+YxNhDjhhZviqiLqywFjh1BZvHk2yKnMBjWN/CY82KZTfazrF5QQQ==","n":310000},,          // מתקבל מ-setup.html (לא מדביקים כאן את הטוקן עצמו!)
+  TOKEN_ENC: {"s":"ihWbXleck1Czvnk3HrBWYA==","i":"RMrXoamV47udIt58","c":"oO/GK0uORZMqT4+u3An5/LPk7HBwop7eJrDjiYVVvd9jJp0Ev1h8P7aLorsD8jd/IL1ms5Bd/2nm0f9ZquK/U1tLHFe2Q+YxNhDjhhZviqiLqywFjh1BZvHk2yKnMBjWN/CY82KZTfazrF5QQQ==","n":310000},          // מתקבל מ-setup.html (לא מדביקים כאן את הטוקן עצמו!)
 
   MAIN_WARD_NAME: "המחלקה הראשית",
   WARDS: {
