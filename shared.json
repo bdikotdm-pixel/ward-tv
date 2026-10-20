@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:23:39.269Z",
+ "updated": "2026-10-20T18:26:12.564Z",
  "items": [
   {
    "type": "ward",
@@ -20,6 +20,23 @@
    "id": "htaiu9e11",
    "by": "ezz",
    "updated": "2026-10-20T18:23:38.634Z"
+  },
+  {
+   "type": "message",
+   "text": "פסטיבל הירח - משעה 9:00 עד 13:00",
+   "text_ar": "",
+   "text_en": "",
+   "important": false,
+   "rec": "daily",
+   "days": [],
+   "start": "",
+   "end": "",
+   "wards": [
+    "*"
+   ],
+   "id": "l3l8ngmli",
+   "by": "ezz",
+   "updated": "2026-10-20T18:26:11.948Z"
   }
  ]
 }
