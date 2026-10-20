@@ -259,6 +259,7 @@ function bindList(type){
         if(['main','central'].includes(base.wid))throw 'הקוד הזה שמור למערכת, בחרו קוד אחר';
         if(ITEMS.some(x=>x.type==='ward'&&x.wid===base.wid&&x.id!==base.id)||CFG_WLIST.some(x=>x[0]===base.wid&&!base.id))throw 'כבר יש מחלקה עם הקוד הזה';
         delete base.wards;
+        if(!base.id){NEWWARD=base.wid;EDIT=null;run(async()=>{const r=await W.save(base,'מחלקה חדשה '+base.name);await createWardFile(base);return r;},'המחלקה נוצרה ✓ – הקישורים מוכנים לשליחה');return;}
       }
       EDIT=null;save(base);}
     catch(err){toast(err);}
@@ -266,6 +267,48 @@ function bindList(type){
   const c=$('cancel');if(c)c.onclick=()=>{EDIT=null;render();};
   document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{EDIT=ITEMS.find(x=>x.id===b.dataset.edit);render();scrollTo(0,0);});
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('למחוק?'))del(b.dataset.del);});
+}
+
+/* ---------- קישורים לשליחה לכל מחלקה ---------- */
+let NEWWARD='',WITHCODE=false;
+function wardLinks(id){const b=siteBase(),q=id&&id!=='main'?'?ward='+encodeURIComponent(id):'';
+  const ck=b+'checkin.html'+q+(WITHCODE&&PIN?'#k='+encodeURIComponent(PIN):'');
+  return [['📺','מסך הטלוויזיה','شاشة التلفزيون',b+q],['⚙️','עדכון הלוח (לאחראי)','تحديث اللوحة (للمسؤول)',b+'admin.html'+q],['👥','רישום נוכחות לצוות','تسجيل حضور الطاقم',ck]];}
+function wardMsg(id,name){const L=wardLinks(id);
+  return `🏥 ${name}\n\n`+L.map(([ic,he,ar,u])=>`${ic} ${he} | ${ar}:\n${u}`).join('\n\n')+(WITHCODE?'':'\n\n🔑 קוד הצוות יימסר בנפרד | رمز الطاقم يُرسَل على حدة');}
+function viewWardLinks(){
+  const ws=wlist();
+  return `<div class="card" id="wlinks"><h3>📤 קישורים לשליחה</h3>
+    <div class="meta">לכל מחלקה – האתר שלה מוכן. העתיקו או שלחו את הקישורים לאחראי המחלקה ולצוות.</div>
+    <label class="seg" style="margin:4px 0"><label><input type="checkbox" id="wcode" ${WITHCODE?'checked':''}>לכלול את קוד הצוות בקישור הנוכחות (בלי צורך להקליד קוד)</label></label>
+    ${ws.map(([id,n])=>`<details class="wl" data-w="${esc(id)}" ${id===NEWWARD?'open style="outline:3px solid #E39B2D;border-radius:12px"':''} style="border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-top:8px">
+      <summary style="cursor:pointer;font-weight:600">🏥 ${esc(n)} <span class="tag" dir="ltr">${esc(id)}</span>${id===NEWWARD?' – <span style="color:#B66A00">חדשה! מוכנה לשליחה</span>':''}</summary>
+      ${wardLinks(id).map(([ic,he,ar,u])=>`<div style="margin-top:8px"><b>${ic} ${he}</b><div class="row" style="align-items:center"><div class="linkbox" style="flex:1">${esc(u)}</div><button class="btn sec sm" type="button" data-cp="${esc(u)}">📋 העתקה</button><a class="btn sec sm" href="${esc(u)}" target="_blank">↗ פתיחה</a></div></div>`).join('')}
+      <div class="row" style="margin-top:10px">
+        <a class="btn sm" style="background:#25D366" target="_blank" href="https://wa.me/?text=${encodeURIComponent(wardMsg(id,n))}">💬 WhatsApp</a>
+        <a class="btn sec sm" href="mailto:?subject=${encodeURIComponent('קישורי המחלקה – '+n)}&body=${encodeURIComponent(wardMsg(id,n))}">✉️ מייל</a>
+        <button class="btn sec sm" type="button" data-cpall="${esc(id)}">📋 העתקת הכול</button>
+        ${navigator.share?`<button class="btn sec sm" type="button" data-share="${esc(id)}">📤 שיתוף</button>`:''}
+      </div></details>`).join('')}
+  </div>`;
+}
+function bindWardLinks(){
+  const box=$('wlinks');if(!box)return;
+  const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('הועתק ✓'),()=>prompt('העתיקו:',t));};
+  const nm=id=>(wlist().find(x=>x[0]===id)||[id,id])[1];
+  box.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>cp(b.dataset.cp));
+  box.querySelectorAll('[data-cpall]').forEach(b=>b.onclick=()=>cp(wardMsg(b.dataset.cpall,nm(b.dataset.cpall))));
+  box.querySelectorAll('[data-share]').forEach(b=>b.onclick=()=>navigator.share({title:nm(b.dataset.share),text:wardMsg(b.dataset.share,nm(b.dataset.share))}).catch(()=>{}));
+  $('wcode').onchange=e=>{WITHCODE=e.target.checked;const open=[...box.querySelectorAll('details[open]')].map(d=>d.dataset.w);render();open.forEach(w=>{const d=document.querySelector(`#wlinks details[data-w="${CSS.escape(w)}"]`);if(d)d.open=true;});};
+  if(NEWWARD){const d=box.querySelector('details[open]');if(d)d.scrollIntoView({behavior:'smooth',block:'center'});NEWWARD='';}
+}
+// יוצר את קובץ המידע של מחלקה חדשה (wards/<id>.json) – כדי שהאתר שלה יהיה קיים מיד
+async function createWardFile(w){
+  const settings={type:'settings',id:'settings',wardName:w.name||'',wardName_ar:w.name_ar||'',wardName_en:w.name_en||''};
+  if(W.DEMO){const k='ward-demo-'+w.wid;try{if(!localStorage.getItem(k))localStorage.setItem(k,JSON.stringify([settings]));}catch(e){}return;}
+  try{const raw=await fetch(`https://raw.githubusercontent.com/${W.CFG.OWNER}/${W.CFG.REPO}/${W.CFG.BRANCH||'main'}/wards/${w.wid}.json?t=${Date.now()}`,{cache:'no-store'});if(raw.ok)return;}catch(e){}
+  try{const json=JSON.stringify({items:[settings]},null,1);
+    await W.uploadFile(`wards/${w.wid}.json`,btoa(unescape(encodeURIComponent(json))),'יצירת מחלקה '+w.name);}catch(e){/* קיים כבר – לא נורא */}
 }
 
 /* ---------- תמונות ---------- */
@@ -416,7 +459,7 @@ function render(){
   if(TAB==='att'){$('view').innerHTML=banner+viewAtt();bindAtt();}
   else if(TAB==='settings'){$('view').innerHTML=banner+viewSettings();bindSettings();}
   else if(TAB==='image'){$('view').innerHTML=banner+viewImages();bindImages();}
-  else{$('view').innerHTML=banner+viewList(TAB);bindList(TAB);}
+  else{$('view').innerHTML=banner+(TAB==='ward'?viewWardLinks():'')+viewList(TAB);bindList(TAB);if(TAB==='ward')bindWardLinks();}
 }
 
 async function enter(){
