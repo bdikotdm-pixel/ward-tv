@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:26:12.564Z",
+ "updated": "2026-10-20T18:27:37.448Z",
  "items": [
   {
    "type": "ward",
@@ -37,6 +37,21 @@
    "id": "l3l8ngmli",
    "by": "ezz",
    "updated": "2026-10-20T18:26:11.948Z"
+  },
+  {
+   "type": "image",
+   "id": "mx76leq4w",
+   "url": "images/shared/2026-10-20-mvkpmyqzd.jpg",
+   "caption": "",
+   "rec": "daily",
+   "days": [],
+   "start": "",
+   "end": "",
+   "wards": [
+    "*"
+   ],
+   "by": "ezz",
+   "updated": "2026-10-20T18:27:36.978Z"
   }
  ]
 }
