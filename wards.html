@@ -40,12 +40,14 @@ const row=(id,name)=>`<div class="w"><b>${esc(name)}<small>${id?'?ward='+esc(id)
   <a class="tv" href="index.html${q(id)}" target="_blank">📺 טלוויזיה</a><a href="admin.html${q(id)}" target="_blank">⚙️ עדכון</a><a href="checkin.html${q(id)}" target="_blank">👥 נוכחות</a></div>`;
 function draw(extra){
   const list=[['',C.MAIN_WARD_NAME||'המחלקה הראשית']].concat(Object.entries(W).map(([id,w])=>[id,w.name||id]));
-  (extra||[]).forEach(w=>{if(w.wid&&!list.some(x=>x[0]===w.wid))list.push([w.wid,w.name||w.wid]);});
+  (extra||[]).forEach(w=>{if(!w.wid)return;const k=w.wid==='main'?'':w.wid,i=list.findIndex(x=>x[0]===k);
+    if(i>=0){if(w.hidden&&k)list.splice(i,1);else if(w.name)list[i][1]=w.name;}else if(!w.hidden)list.push([k,w.name||k]);});
   document.getElementById('list').innerHTML=list.map(([id,n])=>row(id,n)).join('<div style="height:10px"></div>');
 }
 draw();
 // מחלקות שנוצרו בניהול הכללי (shared.json)
-(async()=>{try{const u=C.OWNER?`https://raw.githubusercontent.com/${C.OWNER}/${C.REPO}/${C.BRANCH||'main'}/shared.json?t=${Date.now()}`:'shared.json';
+(async()=>{if(!C.OWNER){try{draw(JSON.parse(localStorage.getItem('ward-demo-central')||'[]').filter(i=>i.type==='ward'));}catch(e){}return;}
+  try{const u=C.OWNER?`https://raw.githubusercontent.com/${C.OWNER}/${C.REPO}/${C.BRANCH||'main'}/shared.json?t=${Date.now()}`:'shared.json';
   const r=await fetch(u,{cache:'no-store'});if(!r.ok)return;const j=await r.json();draw((j.items||[]).filter(i=>i.type==='ward'));}catch(e){}})();
 document.getElementById('f').onsubmit=e=>{e.preventDefault();const id=document.getElementById('wid').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');if(id)location.href='admin.html?ward='+id;};
 </script>

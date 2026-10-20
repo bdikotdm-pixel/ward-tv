@@ -458,7 +458,7 @@ function derive(now){
   const items=(DATA.items||[]).concat(sharedHere().filter(i=>i.type!=='settings'&&i.type!=='staff'&&i.type!=='attendance')),by=x=>items.filter(i=>i.type===x);
   const S=Object.assign({phone:'',visitMorning:'',visitEvening:'',sleepStart:'22:30',wakeTime:'06:30',langs:null},by('settings')[0]||{});
   LANGS=(Array.isArray(S.langs)&&S.langs.length?S.langs:ALL_LANGS).filter(l=>L[l]);
-  if(!S.wardName&&CFG.WARD){const w=(SHARED||[]).find(i=>i.type==='ward'&&i.wid===CFG.WARD);if(w){S.wardName=w.name;S.wardName_ar=w.name_ar;S.wardName_en=w.name_en;}}
+  if(!S.wardName){const me=CFG.WARD||'main',w=(SHARED||[]).find(i=>i.type==='ward'&&i.wid===me&&!i.hidden);if(w){S.wardName=w.name;S.wardName_ar=w.name_ar;S.wardName_en=w.name_en;}}
   const today=ymd(now),dow=now.getDay(),m=nowMin(now);
   const att=by('attendance').filter(a=>a.date===today);
   let staff=by('staff').filter(s=>s.active!==false).map(s=>{

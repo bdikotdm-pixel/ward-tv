@@ -118,7 +118,14 @@ let PIN='',WHO='',ITEMS=[],TAB=CENTRAL?'message':'att',EDIT=null,BUSY=false;
 /* ---------- ניהול כללי: באילו מחלקות להציג ---------- */
 const CFG_WLIST=W.CFG.WARD_LIST||[['main','המחלקה הראשית']];
 // רשימת המחלקות: מ-config.js + מחלקות שנוצרו בניהול הכללי
-function wlist(){const l=CFG_WLIST.slice();(ITEMS||[]).filter(i=>i.type==='ward'&&i.wid).forEach(w=>{if(!l.some(x=>x[0]===w.wid))l.push([w.wid,w.name||w.wid]);});return l;}
+// כל מחלקה: מ-config.js או מהניהול הכללי. פריט 'ward' יכול לשנות שם (גם של מחלקה מ-config) או להסתיר אותה (hidden)
+function allWards(){
+  const items=(ITEMS||[]).filter(i=>i.type==='ward'&&i.wid),out=[];
+  CFG_WLIST.forEach(([k,n])=>{const it=items.find(i=>i.wid===k);out.push(Object.assign({wid:k,name:n,cfg:1},it||{}));});
+  items.forEach(it=>{if(!out.some(x=>x.wid===it.wid))out.push(Object.assign({},it));});
+  return out;
+}
+function wlist(){return allWards().filter(w=>!w.hidden).map(w=>[w.wid,w.name||w.wid]);}
 const siteBase=()=>location.href.replace(/admin\.html.*$/,'').replace(/[?#].*$/,'');
 function wardsHTML(it){
   const sel=it.wards&&it.wards.length?it.wards:['*'],all=sel.includes('*');
@@ -267,6 +274,57 @@ function bindList(type){
   const c=$('cancel');if(c)c.onclick=()=>{EDIT=null;render();};
   document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{EDIT=ITEMS.find(x=>x.id===b.dataset.edit);render();scrollTo(0,0);});
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('למחוק?'))del(b.dataset.del);});
+}
+
+/* ---------- מחלקות: הוספה, עריכה, מחיקה ---------- */
+let WEDIT=null; // המחלקה שבעריכה
+function viewWards(){
+  const T=TYPES.ward,it=WEDIT||{type:'ward'},ws=allWards().filter(w=>!w.hidden);
+  const hidden=allWards().filter(w=>w.hidden);
+  return `<form class="card" id="wf">
+    <h3>${WEDIT?'✏️ עריכת מחלקה':'➕ הוספת מחלקה'}</h3>
+    ${T.fields.map(f=>fieldHTML(f,it)).join('')}
+    ${WEDIT?'<div class="meta">🔒 את הקוד אי אפשר לשנות (הוא חלק מהקישור ומהמידע של המחלקה). אפשר לשנות את השם ואת התרגומים.</div>':''}
+    <div class="row"><button class="btn" type="submit">${WEDIT?'שמירת שינויים':'יצירת מחלקה'}</button>${WEDIT?'<button class="btn sec" type="button" id="wcancel">ביטול</button>':''}</div>
+  </form>
+  <div class="card"><h3>🏥 המחלקות (${ws.length})</h3><div class="items">
+    ${ws.map(w=>{const b=siteBase(),q=w.wid==='main'?'':'?ward='+encodeURIComponent(w.wid);
+      return `<div class="item"><div class="tx"><b>🏥 ${esc(w.name)} <span class="tag" dir="ltr">${esc(w.wid)}</span></b>
+        <div class="meta">${langBadges(w,'name')} ${w.wid==='main'?'· המחלקה הראשית (data.json)':w.cfg?'· מוגדרת ב-config.js':'· נוצרה בניהול הכללי'}</div>
+        <div class="row" style="margin-top:6px"><a class="btn sm" href="${esc(b+q)}" target="_blank">📺 טלוויזיה</a><a class="btn sec sm" href="${esc(b+'admin.html'+q)}" target="_blank">⚙️ עדכון</a><a class="btn sec sm" href="${esc(b+'checkin.html'+q)}" target="_blank">👥 נוכחות</a></div></div>
+        <button class="btn sec sm" type="button" data-wedit="${esc(w.wid)}">✏️ עריכה</button>
+        ${w.wid==='main'?'':`<button class="btn no sm" type="button" data-wdel="${esc(w.wid)}">🗑️ מחיקה</button>`}</div>`;}).join('')}
+  </div>
+  ${hidden.length?`<div class="meta" style="margin-top:10px">מחלקות שנמחקו: ${hidden.map(w=>`<button class="btn sec sm" type="button" data-wback="${esc(w.wid)}">↩️ החזרת ${esc(w.name)}</button>`).join(' ')}</div>`:''}
+  </div>`;
+}
+function bindWards(){
+  const f=$('wf');
+  if(WEDIT){f.elements.wid.readOnly=true;f.elements.wid.style.background='#f1f5f3';}
+  const c=$('wcancel');if(c)c.onclick=()=>{WEDIT=null;render();};
+  const find=wid=>allWards().find(w=>w.wid===wid);
+  f.onsubmit=e=>{e.preventDefault();
+    try{
+      const cur=WEDIT?Object.assign({},WEDIT):{type:'ward'};
+      ['cfg'].forEach(k=>delete cur[k]);
+      const base=readFields(f,TYPES.ward,cur);delete base.wards;
+      if(WEDIT){base.wid=WEDIT.wid;base.type='ward';WEDIT=null;return save(base,'עריכת מחלקה '+base.name);}
+      base.wid=String(base.wid||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+      if(!base.wid)throw 'קוד המחלקה: אותיות אנגליות קטנות או מספרים בלבד';
+      if(['main','central'].includes(base.wid))throw 'הקוד הזה שמור למערכת, בחרו קוד אחר';
+      const ex=find(base.wid);
+      if(ex&&!ex.hidden)throw 'כבר יש מחלקה עם הקוד הזה';
+      if(ex&&ex.id){base.id=ex.id;}            // מחלקה שנמחקה – מחזירים אותה
+      base.hidden=false;NEWWARD=base.wid;
+      run(async()=>{const r=await W.save(base,'מחלקה חדשה '+base.name);await createWardFile(base);return r;},'המחלקה נוצרה ✓ – הקישורים מוכנים לשליחה');
+    }catch(err){toast(err);}
+  };
+  document.querySelectorAll('[data-wedit]').forEach(b=>b.onclick=()=>{const w=find(b.dataset.wedit);WEDIT=Object.assign({type:'ward'},w);render();scrollTo(0,0);});
+  document.querySelectorAll('[data-wdel]').forEach(b=>b.onclick=()=>{const w=find(b.dataset.wdel);
+    if(!confirm(`למחוק את "${w.name}"?\n\nהמחלקה תיעלם מהרשימות ומהניהול הכללי.\nהמידע שלה לא נמחק – אפשר להחזיר אותה בכל רגע.`))return;
+    const it=Object.assign({},w,{type:'ward',hidden:true});delete it.cfg;save(it,'מחיקת מחלקה '+w.name);});
+  document.querySelectorAll('[data-wback]').forEach(b=>b.onclick=()=>{const w=find(b.dataset.wback);
+    const it=Object.assign({},w,{type:'ward',hidden:false});delete it.cfg;save(it,'החזרת מחלקה '+w.name);});
 }
 
 /* ---------- קישורים לשליחה לכל מחלקה ---------- */
@@ -459,7 +517,8 @@ function render(){
   if(TAB==='att'){$('view').innerHTML=banner+viewAtt();bindAtt();}
   else if(TAB==='settings'){$('view').innerHTML=banner+viewSettings();bindSettings();}
   else if(TAB==='image'){$('view').innerHTML=banner+viewImages();bindImages();}
-  else{$('view').innerHTML=banner+(TAB==='ward'?viewWardLinks():'')+viewList(TAB);bindList(TAB);if(TAB==='ward')bindWardLinks();}
+  else if(TAB==='ward'){$('view').innerHTML=banner+viewWards()+viewWardLinks();bindWards();bindWardLinks();}
+  else{$('view').innerHTML=banner+viewList(TAB);bindList(TAB);}
 }
 
 async function enter(){
