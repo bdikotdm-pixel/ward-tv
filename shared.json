@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:51:27.979Z",
+ "updated": "2026-10-20T18:51:58.900Z",
  "items": [
   {
    "type": "ward",
@@ -67,6 +67,23 @@
    ],
    "by": "ezz",
    "updated": "2026-10-20T18:27:51.679Z"
+  },
+  {
+   "type": "message",
+   "text": "שעות  היציאה ממממממ",
+   "text_ar": "ففففففففففففف",
+   "text_en": "hhhhhhhhhhhh",
+   "important": false,
+   "rec": "daily",
+   "days": [],
+   "start": "",
+   "end": "",
+   "wards": [
+    "*"
+   ],
+   "id": "i8u0air3y",
+   "by": "ezz",
+   "updated": "2026-10-20T18:51:58.392Z"
   }
  ]
 }
