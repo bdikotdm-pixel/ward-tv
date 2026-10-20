@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:22:50.613Z",
+ "updated": "2026-10-20T18:23:39.269Z",
  "items": [
   {
    "type": "ward",
@@ -10,6 +10,16 @@
    "id": "grw6ca14w",
    "by": "ezz",
    "updated": "2026-10-20T18:22:50.166Z"
+  },
+  {
+   "type": "ward",
+   "wid": "b",
+   "name": "מחלקה ב",
+   "name_ar": "الفسم ب",
+   "name_en": "WARD B",
+   "id": "htaiu9e11",
+   "by": "ezz",
+   "updated": "2026-10-20T18:23:38.634Z"
   }
  ]
 }
