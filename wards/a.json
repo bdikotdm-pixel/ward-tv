@@ -1,0 +1,44 @@
+{
+ "updated": "2026-10-20T21:44:17.563Z",
+ "items": [
+  {
+   "type": "settings",
+   "id": "settings",
+   "wardName": "",
+   "wardName_ar": "",
+   "wardName_en": "",
+   "phone": "",
+   "headName": "",
+   "headName_ar": "",
+   "headName_en": "",
+   "secretaryName": "",
+   "secretaryName_ar": "",
+   "secretaryName_en": "",
+   "visitMorning": "",
+   "visitEvening": "",
+   "visitNote": "",
+   "visitNote_ar": "",
+   "visitNote_en": "",
+   "sleepStart": "",
+   "wakeTime": "00:46",
+   "nightMessage": "",
+   "nightMessage_ar": "",
+   "nightMessage_en": "",
+   "morningStart": "",
+   "morningEnd": "",
+   "morningMessage": "",
+   "morningMessage_ar": "",
+   "morningMessage_en": "",
+   "flashSeconds": "",
+   "flashEvery": "",
+   "langs": [
+    "he",
+    "ar",
+    "en"
+   ],
+   "scenes": [],
+   "by": "ezz eldine obeidat",
+   "updated": "2026-10-20T21:44:17.048Z"
+  }
+ ]
+}
