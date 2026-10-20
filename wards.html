@@ -38,8 +38,15 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const q=id=>id?'?ward='+encodeURIComponent(id):'';
 const row=(id,name)=>`<div class="w"><b>${esc(name)}<small>${id?'?ward='+esc(id):'data.json'}</small></b>
   <a class="tv" href="index.html${q(id)}" target="_blank">📺 טלוויזיה</a><a href="admin.html${q(id)}" target="_blank">⚙️ עדכון</a><a href="checkin.html${q(id)}" target="_blank">👥 נוכחות</a></div>`;
-const rows=[row('',C.MAIN_WARD_NAME||'המחלקה הראשית')].concat(Object.entries(W).map(([id,w])=>row(id,w.name||id)));
-document.getElementById('list').innerHTML=rows.join('<div style="height:10px"></div>');
+function draw(extra){
+  const list=[['',C.MAIN_WARD_NAME||'המחלקה הראשית']].concat(Object.entries(W).map(([id,w])=>[id,w.name||id]));
+  (extra||[]).forEach(w=>{if(w.wid&&!list.some(x=>x[0]===w.wid))list.push([w.wid,w.name||w.wid]);});
+  document.getElementById('list').innerHTML=list.map(([id,n])=>row(id,n)).join('<div style="height:10px"></div>');
+}
+draw();
+// מחלקות שנוצרו בניהול הכללי (shared.json)
+(async()=>{try{const u=C.OWNER?`https://raw.githubusercontent.com/${C.OWNER}/${C.REPO}/${C.BRANCH||'main'}/shared.json?t=${Date.now()}`:'shared.json';
+  const r=await fetch(u,{cache:'no-store'});if(!r.ok)return;const j=await r.json();draw((j.items||[]).filter(i=>i.type==='ward'));}catch(e){}})();
 document.getElementById('f').onsubmit=e=>{e.preventDefault();const id=document.getElementById('wid').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');if(id)location.href='admin.html?ward='+id;};
 </script>
 </body>

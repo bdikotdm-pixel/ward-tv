@@ -116,15 +116,18 @@ const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set
 const CENTRAL=!!W.CFG.CENTRAL;
 let PIN='',WHO='',ITEMS=[],TAB=CENTRAL?'message':'att',EDIT=null,BUSY=false;
 /* ---------- ניהול כללי: באילו מחלקות להציג ---------- */
-const WLIST=W.CFG.WARD_LIST||[['main','המחלקה הראשית']];
+const CFG_WLIST=W.CFG.WARD_LIST||[['main','המחלקה הראשית']];
+// רשימת המחלקות: מ-config.js + מחלקות שנוצרו בניהול הכללי
+function wlist(){const l=CFG_WLIST.slice();(ITEMS||[]).filter(i=>i.type==='ward'&&i.wid).forEach(w=>{if(!l.some(x=>x[0]===w.wid))l.push([w.wid,w.name||w.wid]);});return l;}
+const siteBase=()=>location.href.replace(/admin\.html.*$/,'').replace(/[?#].*$/,'');
 function wardsHTML(it){
   const sel=it.wards&&it.wards.length?it.wards:['*'],all=sel.includes('*');
   return `<fieldset class="when wards"><legend>🏥 באילו מחלקות להציג</legend><div class="seg">
     <label><input type="checkbox" name="wards" value="*" ${all?'checked':''}><b>כל המחלקות</b></label>
-    ${WLIST.map(([k,n])=>`<label><input type="checkbox" name="wards" value="${esc(k)}" ${!all&&sel.includes(k)?'checked':''}>${esc(n)}</label>`).join('')}</div></fieldset>`;
+    ${wlist().map(([k,n])=>`<label><input type="checkbox" name="wards" value="${esc(k)}" ${!all&&sel.includes(k)?'checked':''}>${esc(n)}</label>`).join('')}</div></fieldset>`;
 }
 function readWards(f){const v=[...f.querySelectorAll('input[name=wards]:checked')].map(x=>x.value);return !v.length||v.includes('*')?['*']:v;}
-function wardsLabel(i){const w=i.wards||['*'];return w.includes('*')?'כל המחלקות':w.map(k=>(WLIST.find(x=>x[0]===k)||[k,k])[1]).join(', ');}
+function wardsLabel(i){const w=i.wards||['*'];return w.includes('*')?'כל המחלקות':w.map(k=>(wlist().find(x=>x[0]===k)||[k,k])[1]).join(', ');}
 // "כל המחלקות" מבטל בחירה של מחלקות בודדות, ולהפך
 document.addEventListener('change',e=>{const t=e.target;if(t.name!=='wards')return;const box=t.closest('fieldset');
   if(t.value==='*'&&t.checked)box.querySelectorAll('input[name=wards]').forEach(x=>{if(x!==t)x.checked=false;});
@@ -188,6 +191,13 @@ const TYPES={
     fields:[['name','שם (כפי שיופיע במסך)','text',1],['role','תפקיד','select',1,ROLES],['days','ימי עבודה קבועים','days'],['from','משעה','time'],['to','עד שעה','time'],['active','פעיל/ה','check',0,null,true]],
     sort:(a,b)=>ROLES.indexOf(a.role)-ROLES.indexOf(b.role),
     sum:i=>`<b>${esc(i.name)} ${i.active===false?'<span class="tag off">לא פעיל</span>':''}</b><div class="meta">${esc(i.role)} · ${(i.days||[]).map(d=>DAYS[d]).join(' ')||'ללא ימים קבועים'} ${i.from?'· '+esc(i.from)+'–'+esc(i.to||''):''}</div>`},
+  ward:{tab:'מחלקות',title:'מחלקה',
+    fields:[['wid','קוד המחלקה באנגלית – יופיע בקישור (למשל a, b, ward2)','text',1],['name','שם המחלקה','text',1]],
+    sort:(a,b)=>String(a.wid).localeCompare(String(b.wid)),
+    sum:i=>{const b=siteBase(),q='?ward='+encodeURIComponent(i.wid);
+      return `<b>🏥 ${esc(i.name)} <span class="tag" dir="ltr">${esc(i.wid)}</span></b><div class="meta">${langBadges(i,'name')}</div>
+      <div class="row" style="margin-top:6px"><a class="btn sm" href="${esc(b+q)}" target="_blank">📺 טלוויזיה</a><a class="btn sec sm" href="${esc(b+'admin.html'+q)}" target="_blank">⚙️ עדכון</a><a class="btn sec sm" href="${esc(b+'checkin.html'+q)}" target="_blank">👥 נוכחות</a></div>
+      <div class="linkbox" style="margin-top:6px">${esc(b+q)}</div>`;}},
   quote:{tab:'משפטים',title:'משפט מרגיע',when:true,
     fields:[['text','משפט (משפט שלא תורגם יוצג רק במסך העברי)','textarea',1]],
     sum:i=>`<b>${esc(i.text)}</b><div class="meta">${langBadges(i,'text')} ${whenLabel(i)} ${statusTag(i)}</div>`},
@@ -221,7 +231,7 @@ function readFields(f,T,base){
     ['ar','en'].forEach(l=>{const e=f.elements[k+'_'+l];if(e)base[k+'_'+l]=e.value.trim();});
   });
   if(T.when)Object.assign(base,readWhen(f));
-  if(CENTRAL)base.wards=readWards(f);
+  if(CENTRAL&&T!==TYPES.ward)base.wards=readWards(f);
   return base;
 }
 
@@ -231,18 +241,26 @@ function viewList(type){
   return `<form class="card" id="f">
     <h3>${it.id?'עריכת':'הוספת'} ${T.title}</h3>
     ${T.fields.map(f=>fieldHTML(f,it)).join('')}
-    ${T.when?whenHTML(it):''}${CENTRAL?wardsHTML(it):''}
+    ${T.when?whenHTML(it):''}${CENTRAL&&type!=='ward'?wardsHTML(it):''}
     <div class="row"><button class="btn" type="submit">${it.id?'שמירת שינויים':'הוספה'}</button>${it.id?'<button class="btn sec" type="button" id="cancel">ביטול</button>':''}</div>
   </form>
   <div class="card"><h3>${T.tab} (${list.length})</h3><div class="items">
-    ${list.map(i=>`<div class="item"><div class="tx">${T.sum(i)}${CENTRAL?`<div class="meta">🏥 ${esc(wardsLabel(i))}</div>`:''}</div><button class="btn sec sm" data-edit="${esc(i.id)}">עריכה</button><button class="btn no sm" data-del="${esc(i.id)}">מחיקה</button></div>`).join('')||'<div class="meta">אין עדיין פריטים</div>'}
+    ${list.map(i=>`<div class="item"><div class="tx">${T.sum(i)}${CENTRAL&&type!=='ward'?`<div class="meta">🏥 ${esc(wardsLabel(i))}</div>`:''}</div><button class="btn sec sm" data-edit="${esc(i.id)}">עריכה</button><button class="btn no sm" data-del="${esc(i.id)}">מחיקה</button></div>`).join('')||'<div class="meta">אין עדיין פריטים</div>'}
   </div></div>`;
 }
 function bindList(type){
   const T=TYPES[type],f=$('f');
   if(T.when){syncWhen(f);f.addEventListener('change',()=>syncWhen(f));}
   f.onsubmit=e=>{e.preventDefault();
-    try{const base=readFields(f,T,(EDIT&&EDIT.type===type)?Object.assign({},EDIT):{type});EDIT=null;save(base);}
+    try{const base=readFields(f,T,(EDIT&&EDIT.type===type)?Object.assign({},EDIT):{type});
+      if(type==='ward'){
+        base.wid=String(base.wid||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+        if(!base.wid)throw 'קוד המחלקה: אותיות אנגליות קטנות או מספרים בלבד';
+        if(['main','central'].includes(base.wid))throw 'הקוד הזה שמור למערכת, בחרו קוד אחר';
+        if(ITEMS.some(x=>x.type==='ward'&&x.wid===base.wid&&x.id!==base.id)||CFG_WLIST.some(x=>x[0]===base.wid&&!base.id))throw 'כבר יש מחלקה עם הקוד הזה';
+        delete base.wards;
+      }
+      EDIT=null;save(base);}
     catch(err){toast(err);}
   };
   const c=$('cancel');if(c)c.onclick=()=>{EDIT=null;render();};
@@ -389,7 +407,7 @@ function bindSettings(){
 }
 
 /* ---------- ניווט ---------- */
-const TABS=CENTRAL?[['message','📣 הודעות'],['image','🖼️ תמונות'],['schedule','📋 אירועים בסדר היום'],['quote','🌿 משפטים']]
+const TABS=CENTRAL?[['message','📣 הודעות'],['image','🖼️ תמונות'],['schedule','📋 אירועים בסדר היום'],['quote','🌿 משפטים'],['ward','🏥 מחלקות']]
   :[['att','👥 נוכחות היום'],['schedule','📋 סדר יום'],['message','📣 הודעות'],['image','🖼️ תמונות'],['staff','🧑‍⚕️ צוות'],['quote','🌿 משפטים'],['settings','⚙️ הגדרות']];
 function render(){
   $('tabs').innerHTML=TABS.map(([k,l])=>`<button class="${k===TAB?'on':''}" data-tab="${k}">${l}</button>`).join('');
