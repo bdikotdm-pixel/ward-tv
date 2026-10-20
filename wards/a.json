@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T21:44:17.563Z",
+ "updated": "2026-10-20T21:46:25.177Z",
  "items": [
   {
    "type": "settings",
@@ -24,7 +24,7 @@
    "nightMessage": "",
    "nightMessage_ar": "",
    "nightMessage_en": "",
-   "morningStart": "",
+   "morningStart": "00:48",
    "morningEnd": "",
    "morningMessage": "",
    "morningMessage_ar": "",
@@ -38,7 +38,7 @@
    ],
    "scenes": [],
    "by": "ezz eldine obeidat",
-   "updated": "2026-10-20T21:44:17.048Z"
+   "updated": "2026-10-20T21:46:24.724Z"
   }
  ]
 }
