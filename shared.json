@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-20T18:27:37.448Z",
+ "updated": "2026-10-20T18:27:52.194Z",
  "items": [
   {
    "type": "ward",
@@ -52,6 +52,21 @@
    ],
    "by": "ezz",
    "updated": "2026-10-20T18:27:36.978Z"
+  },
+  {
+   "type": "image",
+   "id": "n8jihjowm",
+   "url": "images/shared/2026-10-20-n76old89f.jpg",
+   "caption": "",
+   "rec": "daily",
+   "days": [],
+   "start": "",
+   "end": "",
+   "wards": [
+    "a"
+   ],
+   "by": "ezz",
+   "updated": "2026-10-20T18:27:51.679Z"
   }
  ]
 }
