@@ -486,6 +486,9 @@ function viewSettings(){
   return `<form class="card" id="fs"><h3>🌐 שפות המסך</h3>
     <div class="meta">המסך מתחלף בין השפות שנבחרו. כל הכותרות מתורגמות אוטומטית; טקסט שכתבתם בלי תרגום יוצג בעברית.</div>
     <div class="seg">${Object.entries(LANG_NAMES).map(([k,l])=>`<label><input type="checkbox" name="lang" value="${k}" ${lg.includes(k)?'checked':''}>${l}</label>`).join('')}</div>
+    <h3 style="margin-top:6px">🎉 חגים במסך</h3>
+    <div class="meta">כניסת ויציאת שבת וחג, והחגים של היום והימים הקרובים – מופיעים לבד. בחרו אילו חגים להציג:</div>
+    <div class="seg">${[['jewish','יהודיים'],['muslim','מוסלמיים'],['christian','נוצריים']].map(([k,l])=>`<label><input type="checkbox" name="hol" value="${k}" ${(Array.isArray(s.holidays)?s.holidays:['jewish','muslim','christian']).includes(k)?'checked':''}>${l}</label>`).join('')}</div>
     <h3 style="margin-top:6px">פרטי המחלקה (קבוע)</h3>${SFIELDS.map(([k,l,t])=>fieldHTML([k,l,t==='time-range'?'text':t],s)).join('')}
     <button class="btn" type="submit">שמירה</button></form>
   <div class="card"><h3>🔗 קישור נוכחות לצוות</h3>
@@ -500,6 +503,7 @@ function bindSettings(){
   f.onsubmit=e=>{e.preventDefault();const s=Object.assign({},settings(),{type:'settings',id:'settings'});
     SFIELDS.forEach(([k])=>{s[k]=f.elements[k].value.trim();['ar','en'].forEach(l=>{const e=f.elements[k+'_'+l];if(e)s[k+'_'+l]=e.value.trim();});});
     s.langs=[...f.querySelectorAll('input[name=lang]:checked')].map(x=>x.value);if(!s.langs.length)s.langs=['he'];
+    s.holidays=[...f.querySelectorAll('input[name=hol]:checked')].map(x=>x.value);
     s.scenes=[...f.querySelectorAll('input[name=scene]:checked')].map(x=>x.value);
     save(s,'הגדרות');};
   const cp=t=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('הקישור הועתק ✓'),()=>prompt('העתיקו את הקישור:',t));};

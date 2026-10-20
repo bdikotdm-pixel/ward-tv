@@ -49,7 +49,7 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 .arc .ends{display:flex;justify-content:space-between;gap:calc(var(--u)*1);font-size:calc(var(--u)*1.3);opacity:.75;margin-top:calc(var(--u)*.4)}
 .skyfoot{display:flex;flex-direction:column;align-items:flex-start;gap:calc(var(--u)*.8);margin-top:calc(var(--u)*1.4);font-size:calc(var(--u)*1.5)}
 .wx{font-size:calc(var(--u)*2.4);font-weight:500}
-.shab{line-height:1.45;opacity:.92;white-space:nowrap;font-size:calc(var(--u)*1.35)}
+.shab{line-height:1.45;opacity:.92;font-size:calc(var(--u)*1.35)}
 .shab b{font-weight:600}
 
 .stage{position:relative;min-height:0}
@@ -362,21 +362,21 @@ he:{sched:'סדר היום',now:'עכשיו',until:'עד',noSched:'אין פעי
   brT:'נשימה מרגיעה',brS:'נשמו יחד עם העיגול',brIn:'שאיפה',brHold:'החזיקו',brOut:'נשיפה',
   noTeam:'הצוות יעודכן בקרוב',free:'זמן חופשי',freeSub:'אפשר לנוח, לקרוא או לפנות לצוות',next:'אחר כך',done:'סיימנו את סדר היום',
   nextMeal:'הארוחה הבאה',nextMed:'התרופות הבאות',tomorrow:'מחר',visits:'שעות ביקור',morning:'בוקר',evening:'ערב',openNow:'פתוח עכשיו',phone:'טלפון המחלקה',
-  msg:'הודעה',imp:'הודעה חשובה',shIn:'כניסת שבת',shOut:'יציאת שבת',shabbat:'שבת שלום',morningT:'בוקר טוב',morningMsg:'יום חדש מתחיל. הצוות כאן איתכם.',night:'לילה טוב',nightMsg:'הגיע הזמן לנוח. הצוות כאן איתכם כל הלילה.',
+  msg:'הודעה',imp:'הודעה חשובה',hIn:'כניסת החג',hOut:'צאת החג',holToday:'חג שמח',inDays:d=>d===1?'מחר':`בעוד ${d} ימים`,shIn:'כניסת שבת',shOut:'יציאת שבת',shabbat:'שבת שלום',morningT:'בוקר טוב',morningMsg:'יום חדש מתחיל. הצוות כאן איתכם.',night:'לילה טוב',nightMsg:'הגיע הזמן לנוח. הצוות כאן איתכם כל הלילה.',
   rest:'שעות מנוחה',wake:'השכמה',sleep:'שינה',vM:'ביקורים – בוקר',vE:'ביקורים – ערב',sleepRow:'לילה טוב',demo:'מצב הדגמה',offline:'אין חיבור – מוצג מידע אחרון',
   tod:['בוקר','צהריים','אחר הצהריים','ערב','לילה'],inM:d=>`בעוד ${d} דק׳`,inH:(h,m)=>`בעוד ${h}:${m} ש׳`},
 ar:{sched:'برنامج اليوم',now:'الآن',until:'حتى',noSched:'لا توجد فعاليات مخططة اليوم',head:'مدير/ة القسم',secretary:'سكرتيرة القسم',team:'طاقم القسم',
   brT:'تمرين تنفّس',brS:'تنفّس مع الدائرة',brIn:'شهيق',brHold:'احبس',brOut:'زفير',
   noTeam:'سيتم تحديث الطاقم قريباً',free:'وقت حر',freeSub:'يمكنكم الراحة أو القراءة أو التوجه للطاقم',next:'بعد ذلك',done:'انتهى برنامج اليوم',
   nextMeal:'الوجبة القادمة',nextMed:'الأدوية القادمة',tomorrow:'غداً',visits:'ساعات الزيارة',morning:'صباحاً',evening:'مساءً',openNow:'مفتوحة الآن',phone:'هاتف القسم',
-  msg:'رسالة',imp:'رسالة مهمة',shIn:'دخول السبت',shOut:'خروج السبت',shabbat:'سبت هادئ',morningT:'صباح الخير',morningMsg:'يوم جديد يبدأ. الطاقم هنا معكم.',night:'تصبحون على خير',nightMsg:'حان وقت الراحة. الطاقم هنا معكم طوال الليل.',
+  msg:'رسالة',imp:'رسالة مهمة',hIn:'دخول العيد',hOut:'خروج العيد',holToday:'عيد سعيد',inDays:d=>d===1?'غداً':`بعد ${d} أيام`,shIn:'دخول السبت',shOut:'خروج السبت',shabbat:'سبت هادئ',morningT:'صباح الخير',morningMsg:'يوم جديد يبدأ. الطاقم هنا معكم.',night:'تصبحون على خير',nightMsg:'حان وقت الراحة. الطاقم هنا معكم طوال الليل.',
   rest:'ساعات الراحة',wake:'صباحاً',sleep:'النوم',vM:'زيارة – صباحاً',vE:'زيارة – مساءً',sleepRow:'تصبحون على خير',demo:'وضع تجريبي',offline:'لا يوجد اتصال – تُعرض آخر معلومات',
   tod:['الصباح','الظهر','بعد الظهر','المساء','الليل'],inM:d=>`بعد ${d} د`,inH:(h,m)=>`بعد ${h}:${m} س`},
 en:{sched:"Today's schedule",now:'Now',until:'until',noSched:'No activities planned today',head:'Head of department',secretary:'Ward secretary',team:'Ward team',
   brT:'Calm breathing',brS:'Breathe with the circle',brIn:'Breathe in',brHold:'Hold',brOut:'Breathe out',
   noTeam:'The team will be updated soon',free:'Free time',freeSub:'You can rest, read or talk to the staff',next:'Next',done:"That's all for today",
   nextMeal:'Next meal',nextMed:'Next medication',tomorrow:'Tomorrow',visits:'Visiting hours',morning:'Morning',evening:'Evening',openNow:'Open now',phone:'Ward phone',
-  msg:'Message',imp:'Important',shIn:'Shabbat begins',shOut:'Shabbat ends',shabbat:'Shabbat Shalom',morningT:'Good morning',morningMsg:'A new day is starting. The staff are here with you.',night:'Good night',nightMsg:'Time to rest. The staff are here with you all night.',
+  msg:'Message',imp:'Important',hIn:'Holiday begins',hOut:'Holiday ends',holToday:'Happy holiday',inDays:d=>d===1?'Tomorrow':`In ${d} days`,shIn:'Shabbat begins',shOut:'Shabbat ends',shabbat:'Shabbat Shalom',morningT:'Good morning',morningMsg:'A new day is starting. The staff are here with you.',night:'Good night',nightMsg:'Time to rest. The staff are here with you all night.',
   rest:'Quiet hours',wake:'Wake up',sleep:'Bedtime',vM:'Visiting – morning',vE:'Visiting – evening',sleepRow:'Good night',demo:'Demo mode',offline:'Offline – showing last saved info',
   tod:['Morning','Midday','Afternoon','Evening','Night'],inM:d=>`in ${d} min`,inH:(h,m)=>`in ${h}:${m} h`}
 };
@@ -495,12 +495,65 @@ async function loadOwn(){
     if(c){DATA=c;mode='offline';}else if(CFG.OWNER){DATA={items:[]};mode='';}else{DATA={items:demoItems()};mode='demo';}
   }
 }
+/* ---------- שבת וחגים (יהודיים, מוסלמיים, נוצריים) – מתעדכן לבד ---------- */
+// שמות החגים היהודיים בערבית (Hebcal נותן עברית ואנגלית)
+const HOL_AR=[[/^Erev /,'عشية '],[/^Rosh Hashana/,'رأس السنة العبرية'],[/^Yom Kippur/,'يوم الغفران (كيبور)'],[/^Sukkot/,'عيد العُرش (سوكوت)'],
+  [/^Shmini Atzeret/,'شميني عتسيرت'],[/^Simchat Torah/,'فرحة التوراة'],[/^Chanukah/,'عيد الأنوار (حانوكا)'],[/^Tu BiShvat/,'عيد الأشجار (طو بشفاط)'],
+  [/^Purim/,'عيد المساخر (بوريم)'],[/^Shushan Purim/,'بوريم شوشان'],[/^Pesach/,'عيد الفصح العبري (بيسح)'],[/^Shavuot/,'عيد الأسابيع (شفوعوت)'],
+  [/^Lag BaOmer/,'لاغ بعومر'],[/^Tish'a B'Av/,'التاسع من آب'],[/^Tu B'Av/,'طو بآب'],[/^Tzom|^Ta'anit|^Asara/,'يوم صوم']];
+function holAr(en){const erev=/^Erev /.test(en),base=en.replace(/^Erev /,'');const hit=HOL_AR.find(([r])=>r!==HOL_AR[0][0]&&r.test(base));
+  if(!hit)return '';let n=hit[1];const c=base.match(/Chanukah: (\d)/);if(c)n+=` – ${c[1]}`;return (erev?'عشية ':'')+n;}
+const HOL_ICON=en=>/Chanukah/.test(en)?'🕎':/Purim/.test(en)?'🎭':/Sukkot|Simchat/.test(en)?'🌿':/Pesach/.test(en)?'🍷':/Rosh Hashana/.test(en)?'🍎':/Shavuot/.test(en)?'🌾':/Kippur|Tzom|Ta'anit|Tish'a|Asara/.test(en)?'🕊️':'✨';
+let HOL={jew:[],cand:[]};
 async function loadShabbat(){
+  const d0=new Date(),d1=new Date(d0.getTime()+12*864e5);
   try{
-    const j=await(await fetch(`https://www.hebcal.com/shabbat?cfg=json&geonameid=${CFG.GEONAME_ID}&M=on&lg=he`)).json();
-    const c=j.items.find(i=>i.category==='candles'),h=j.items.find(i=>i.category==='havdalah');
-    SHAB={in:c?new Date(c.date):null,out:h?new Date(h.date):null};
-  }catch(e){}
+    const j=await(await fetch(`https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=off&nx=off&ss=off&mf=off&c=on&geo=geonameid&geonameid=${CFG.GEONAME_ID}&M=on&start=${ymd(d0)}&end=${ymd(d1)}`)).json();
+    const it=j.items||[];
+    HOL={jew:it.filter(i=>i.category==='holiday'&&i.subcat!=='shabbat').map(i=>({date:i.date.slice(0,10),en:i.title,he:i.hebrew||i.title,ar:holAr(i.title),ic:HOL_ICON(i.title),g:'jewish'})),
+         cand:it.filter(i=>i.category==='candles'||i.category==='havdalah').map(i=>({t:new Date(i.date),k:i.category,date:i.date.slice(0,10)})).sort((a,b)=>a.t-b.t)};
+    safe.set('ward-hol',JSON.stringify(j.items));
+  }catch(e){try{const it=JSON.parse(safe.get('ward-hol')||'[]');if(it.length&&!HOL.jew.length){HOL.cand=it.filter(i=>i.category==='candles'||i.category==='havdalah').map(i=>({t:new Date(i.date),k:i.category,date:i.date.slice(0,10)}));
+    HOL.jew=it.filter(i=>i.category==='holiday').map(i=>({date:i.date.slice(0,10),en:i.title,he:i.hebrew||i.title,ar:holAr(i.title),ic:HOL_ICON(i.title),g:'jewish'}));}}catch(_){}}
+}
+// חגים מוסלמיים (לוח אום אל-קורא – ייתכן הפרש של יום) ונוצריים – מחושבים במחשב, בלי אינטרנט
+function hijri(d){try{const p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric',month:'numeric'}).formatToParts(d);return{d:+p.find(x=>x.type==='day').value,m:+p.find(x=>x.type==='month').value};}catch(e){return null;}}
+function easter(y,orth){let m,d;if(orth){const a=y%4,b=y%7,c=y%19,dd=(19*c+15)%30,e=(2*a+4*b-dd+34)%7;m=Math.floor((dd+e+114)/31);d=((dd+e+114)%31)+1;const j=new Date(y,m-1,d);j.setDate(j.getDate()+13);return ymd(j);}
+  const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,mm=Math.floor((a+11*h+22*l)/451);
+  m=Math.floor((h+l-7*mm+114)/31);d=((h+l-7*mm+114)%31)+1;return ymd(new Date(y,m-1,d));}
+const OTHER_HOL={ram:['🌙','רמדאן','رمضان كريم','Ramadan'],fitr:['⭐','עיד אל-פיטר','عيد الفطر السعيد','Eid al-Fitr'],adha:['⭐','עיד אל-אדחא','عيد الأضحى المبارك','Eid al-Adha'],
+  hny:['🌙','ראש השנה ההיג׳רי','رأس السنة الهجرية','Islamic New Year'],mawlid:['🌙','מולד הנביא','المولد النبوي الشريف','Mawlid'],
+  xmas:['🎄','חג המולד','عيد الميلاد المجيد','Christmas'],oxmas:['🎄','חג המולד (המזרחי)','عيد الميلاد المجيد (الشرقي)','Orthodox Christmas'],
+  east:['🌸','פסחא','عيد الفصح المجيد','Easter'],oeast:['🌸','פסחא (המזרחית)','عيد الفصح المجيد (الشرقي)','Orthodox Easter']};
+function otherHolidays(from,days){
+  const out=[],add=(date,k,g,extra)=>{const [ic,he,ar,en]=OTHER_HOL[k];out.push({date,ic,he:he+(extra||''),ar:ar+(extra||''),en:en+(extra||''),g});};
+  for(let i=0;i<days;i++){const d=new Date(from.getFullYear(),from.getMonth(),from.getDate()+i),k=ymd(d),h=hijri(d),y=d.getFullYear();
+    if(h){if(h.m===9)add(k,'ram','muslim',h.d>1?` · ${h.d}`:'');if(h.m===10&&h.d<=3)add(k,'fitr','muslim');if(h.m===12&&h.d>=10&&h.d<=13)add(k,'adha','muslim');
+      if(h.m===1&&h.d===1)add(k,'hny','muslim');if(h.m===3&&h.d===12)add(k,'mawlid','muslim');}
+    const md=k.slice(5);if(md==='12-25')add(k,'xmas','christian');if(md==='01-07')add(k,'oxmas','christian');
+    if(k===easter(y,false))add(k,'east','christian');if(k===easter(y,true))add(k,'oeast','christian');}
+  return out;
+}
+function holidayLines(now,S){
+  const groups=Array.isArray(S.holidays)?S.holidays:['jewish','muslim','christian'],today=ymd(now),lines=[];
+  const all=(HOL.jew||[]).concat(otherHolidays(now,4)).filter(h=>groups.includes(h.g));
+  const name=h=>LANG==='ar'?(h.ar||h.he):LANG==='en'?h.en:h.he;
+  // היום
+  const tod=all.filter(h=>h.date===today);
+  tod.slice(0,2).forEach(h=>lines.push(`${h.ic} <b>${esc(name(h))}</b>`));
+  // בימים הקרובים (עד 3 ימים)
+  if(lines.length<2){const seen=new Set(tod.map(h=>name(h).split(/[ :·–(]/)[0]));
+    for(const h of all.filter(h=>h.date>today).sort((a,b)=>a.date.localeCompare(b.date))){const key=name(h).split(/[ :·–(]/)[0];if(seen.has(key))continue;seen.add(key);
+      const dd=Math.round((new Date(h.date+'T12:00')-new Date(today+'T12:00'))/864e5);if(dd<1||dd>3)continue;
+      lines.push(`${t('inDays')(dd)}: ${h.ic} ${esc(name(h))}`);if(lines.length>=2)break;}}
+  // הדלקת נרות / צאת שבת או חג – מיום לפני ועד ההבדלה
+  if(groups.includes('jewish')){const c=(HOL.cand||[]),hv=c.find(x=>x.k==='havdalah'&&x.t>now);
+    if(hv){const cin=c.filter(x=>x.k==='candles'&&x.t<hv.t).pop();
+      if(cin&&now>=new Date(cin.t.getTime()-30*3600e3)){const shab=hv.t.getDay()===6,yt=(HOL.jew||[]).some(h=>h.date===hv.date&&!/Chanukah|Rosh Chodesh/.test(h.en));
+        const kIn=shab&&!yt?'shIn':'hIn',kOut=shab&&!yt?'shOut':'hOut';
+        lines.push(now>=cin.t?`${shab&&!yt?`<b>${t('shabbat')}</b><br>`:''}${t(kOut)} <span class="num">${hm(hv.t)}</span>`
+          :`${t(kIn)} <span class="num">${hm(cin.t)}</span><br>${t(kOut)} <span class="num">${hm(hv.t)}</span>`);}}}
+  return lines.join('<br>');
 }
 async function loadHebDate(){
   const d=new Date(),key=ymd(d);
@@ -568,12 +621,7 @@ function renderSky(now){
   $('gdate').textContent=now.toLocaleDateString(LOCALE[LANG],{day:'numeric',month:'long',year:'numeric'});
   $('hdate').textContent=subDate(now);
   $('wx').innerHTML=WX?`${WXI(WX.c)} <span class="num">${WX.t}°</span>`:'';
-  let sh='';const dow=now.getDay();
-  if(SHAB&&SHAB.in&&SHAB.out&&now<SHAB.out&&(dow===4||dow===5||dow===6)){
-    sh=now>=SHAB.in?`<b>${t('shabbat')}</b><br>${t('shOut')} <span class="num">${hm(SHAB.out)}</span>`
-      :`${t('shIn')} <span class="num">${hm(SHAB.in)}</span><br>${t('shOut')} <span class="num">${hm(SHAB.out)}</span>`;
-  }
-  $('shab').innerHTML=sh;
+  $('shab').innerHTML=holidayLines(now,S);
   // קשת השמש: מהשכמה ועד השינה
   const wake=toMin(S.wakeTime)??390,sleep=toMin(S.sleepStart)??1350;
   const p=Math.max(0,Math.min(1,(m-wake)/Math.max(1,sleep-wake))),rtl=LANG!=='en';
