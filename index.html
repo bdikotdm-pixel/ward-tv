@@ -285,31 +285,35 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 .pshow .pclock{position:absolute;top:calc(var(--u)*2.4);inset-inline-end:calc(var(--u)*3);color:#fff;font-size:calc(var(--u)*3.2);font-weight:500;background:rgba(0,0,0,.35);padding:calc(var(--u)*.4) calc(var(--u)*1.6);border-radius:4vh}
 .pshow .pbar{position:absolute;inset-inline:calc(var(--u)*3);bottom:calc(var(--u)*2);height:calc(var(--u)*.4);background:rgba(255,255,255,.2);border-radius:1vh;overflow:hidden}
 .pshow .pbar i{display:block;height:100%;width:0;background:rgba(255,255,255,.7)}
-/* ===== בוקר טוב ===== */
-.morning{position:fixed;inset:0;z-index:9;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:calc(var(--u)*1.4);color:#3B2A12;
-  background:linear-gradient(180deg,#8EC5EA 0%,#BFDDEE 30%,#FBE3B8 62%,#F8C27E 82%,#F3A36A 100%)}
+/* ===== בוקר טוב – זריחה מצוירת בזמן אמת (canvas) ===== */
+.morning{position:fixed;inset:0;z-index:9;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:calc(var(--u)*1.2);padding-top:22vh;background:#0B1226}
 .morning[hidden]{display:none}
-.morning .sunwrap{position:relative;width:calc(var(--u)*16);height:calc(var(--u)*16);margin-bottom:calc(var(--u)*.6);animation:rise 9s ease-out both}
-@keyframes rise{from{transform:translateY(8vh);opacity:.4}}
-.morning .rays{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,214,102,.55) 0 6deg,transparent 6deg 18deg);
-  -webkit-mask:radial-gradient(circle,transparent 38%,#000 40%,#000 62%,transparent 70%);mask:radial-gradient(circle,transparent 38%,#000 40%,#000 62%,transparent 70%);animation:spin 60s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.morning .sun{position:absolute;inset:27%;border-radius:50%;background:radial-gradient(circle at 40% 38%,#FFF3C4,#FFD45C 55%,#F7B23B);box-shadow:0 0 6vh rgba(255,200,80,.75),0 0 14vh rgba(255,190,90,.45)}
-.morning .cloud{position:absolute;height:calc(var(--u)*4.5);border-radius:5vh;background:rgba(255,255,255,.75);filter:blur(2px)}
-.morning .cloud::before,.morning .cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
-.morning .cloud::before{width:45%;height:150%;top:-60%;left:15%}
-.morning .cloud::after{width:35%;height:120%;top:-40%;left:50%}
-.morning .c1{width:calc(var(--u)*16);top:14%;left:-20%;animation:drift 90s linear infinite}
-.morning .c2{width:calc(var(--u)*11);top:26%;left:-15%;animation:drift 120s linear infinite;animation-delay:-50s;opacity:.8}
-@keyframes drift{to{transform:translateX(140vw)}}
-.morning .hill{position:absolute;bottom:-8vh;width:70vw;height:22vh;border-radius:50%;background:#9CC59A;opacity:.55}
-.morning .h1{left:-10vw}.morning .h2{right:-15vw;background:#86B88A;bottom:-11vh}
-.morning h1{position:relative;font-size:calc(var(--u)*7);font-weight:600;color:#4A2E0E}
-.morning .mc{position:relative;font-size:calc(var(--u)*5);font-weight:300;color:#5A3E1C}
-.morning p{position:relative;font-size:calc(var(--u)*2.3);max-width:62vw;line-height:1.5;color:#5A3E1C}
-.morning .mnext{position:relative;display:flex;gap:calc(var(--u)*1.4);margin-top:calc(var(--u)*1)}
-.morning .mnext div{background:rgba(255,255,255,.65);border-radius:3vh;padding:calc(var(--u)*.8) calc(var(--u)*1.8);font-size:calc(var(--u)*2);font-weight:500;color:#3B2A12}
+.morning canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+/* סרטון זריחה אמיתי (sunrise.mp4) – אם קיים, מוצג במקום הציור */
+.morning video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity 1.5s}
+.morning.vid video{opacity:1}
+.morning.vid .bird{display:none}
+.morning.vid::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(60% 45% at 50% 62%,rgba(0,0,0,.38),rgba(0,0,0,0) 75%)}
+.morning.vid h1,.morning.vid .mc,.morning.vid p{color:#fff;text-shadow:0 2px calc(var(--u)*1.5) rgba(0,0,0,.6)}
+.morning .bird{position:absolute;z-index:2;top:30%;left:-6vw;width:calc(var(--u)*1.8);height:calc(var(--u)*.85);opacity:0}
+.morning .bird path{fill:none;stroke:#2B2620;stroke-width:2;stroke-linecap:round;animation:flap .7s ease-in-out infinite alternate}
+@keyframes flap{to{d:path("M1 9 Q7 7 13 9 Q19 7 25 9")}}
+.morning.dawn .bird{animation:fly 26s linear 13s 1 both}
+.morning.dawn .b2{top:27%;animation-delay:14s}
+.morning.dawn .b3{top:33%;animation-delay:14.8s}
+@keyframes fly{0%{opacity:0;left:-6vw}8%{opacity:.75}90%{opacity:.75}100%{opacity:0;left:106vw;margin-top:-5vh}}
+.morning h1,.morning .mc,.morning p,.morning .mnext{position:relative;z-index:3;text-shadow:0 0 calc(var(--u)*2) rgba(255,248,235,.55)}
+.morning h1{font-size:calc(var(--u)*7);font-weight:600;color:#3A2410}
+.morning .mc{font-size:calc(var(--u)*4.6);font-weight:300;color:#4A3018}
+.morning p{font-size:calc(var(--u)*2.3);max-width:62vw;line-height:1.5;color:#4A3018}
+.morning .mnext{display:flex;gap:calc(var(--u)*1.4);margin-top:calc(var(--u)*1);text-shadow:none}
+.morning .mnext div{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:3vh;padding:calc(var(--u)*.8) calc(var(--u)*1.8);font-size:calc(var(--u)*2);font-weight:500;color:#3B2A12}
 .morning .mnext b{font-weight:600}
+.morning.dawn h1{animation:txtIn 3s ease-out 12s both}
+.morning.dawn .mc{animation:txtIn 3s ease-out 13.2s both}
+.morning.dawn p{animation:txtIn 3s ease-out 14.2s both}
+.morning.dawn .mnext{animation:txtIn 3s ease-out 15.2s both}
+@keyframes txtIn{from{opacity:0;transform:translateY(3vh)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -343,8 +347,8 @@ body{background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif
 </div>
 <div class="flash" id="flash"><div class="fh"><span class="k" id="fk"></span><span class="fc num" id="fc"></span></div><div class="fb"><div class="fx" id="fx"></div></div><div class="fbar"><i id="fbar"></i></div></div>
 <div class="pshow" id="pshow"></div>
-<div class="morning" id="morning" hidden><i class="cloud c1"></i><i class="cloud c2"></i><i class="hill h1"></i><i class="hill h2"></i>
-  <div class="sunwrap"><div class="rays"></div><div class="sun"></div></div><h1 id="mgt"></h1><div class="mc num" id="mclock"></div><p id="mmsg"></p><div class="mnext" id="mnext"></div></div>
+<div class="morning" id="morning" hidden><canvas id="mcv"></canvas><video id="mvid" muted playsinline preload="none"></video><svg class="bird b1" viewBox="0 0 26 12"><path d="M1 4 Q7 10 13 6 Q19 10 25 4"/></svg><svg class="bird b2" viewBox="0 0 26 12"><path d="M1 4 Q7 10 13 6 Q19 10 25 4"/></svg><svg class="bird b3" viewBox="0 0 26 12"><path d="M1 4 Q7 10 13 6 Q19 10 25 4"/></svg>
+  <h1 id="mgt"></h1><div class="mc num" id="mclock"></div><p id="mmsg"></p><div class="mnext" id="mnext"></div></div>
 <div class="night" id="night" hidden><div class="moon"></div><h1 id="ngt"></h1><div class="nc num" id="nclock"></div><p id="nmsg"></p><div class="ns" id="nsub"></div></div>
 
 <script>
@@ -722,14 +726,107 @@ function renderVisit(){
 
 /* ---------- לילה ---------- */
 function inMorning(now,S){
-  const a=toMin(S.morningStart||'06:00'),b=toMin(S.morningEnd||'07:00');if(a==null||b==null||S.morningOff)return false;
-  const m=nowMin(now);return m>=a&&m<b;
+  const a=toMin(S.morningStart||'06:00'),b=toMin(S.morningEnd||'07:00'),w=toMin(S.wakeTime);if(a==null||b==null||S.morningOff)return false;
+  const m=nowMin(now);
+  if(inNight(now,S))return false;                       // קודם נגמר הלילה – ואז הזריחה
+  if(w!=null&&m>=w&&m<w+5)return true;                  // תמיד יש זריחה בסוף השינה (לפחות 5 דקות)
+  return m>=a&&m<b;
 }
 function inNight(now,S){
   const s=toMin(S.sleepStart),w=toMin(S.wakeTime);if(s==null||w==null)return false;
   const m=nowMin(now);return s>w?(m>=s||m<w):(m>=s&&m<w);
 }
 function stars(){const n=$('night');for(let i=0;i<70;i++){const s=document.createElement('i');s.className='st';s.style.cssText=`top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${(Math.random()*4).toFixed(2)}s;opacity:${(.2+Math.random()*.7).toFixed(2)}`;n.appendChild(s);}}
+
+/* ---------- זריחה מציאותית: שמיים, שמש, עננים והרי ירושלים – מצוירים בזמן אמת ---------- */
+const Dawn=(()=>{
+  const DUR=22000;                       // משך הזריחה (מ"ש)
+  let cv,ctx,W,H,HOR,ridges,clouds,starsA,rays,t0=0,raf=0,last=0,lastDraw=0;
+  const rng=seed=>()=>(seed=(seed*16807)%2147483647,(seed-1)/2147483646);
+  const noise=(r,n)=>{const p=Array.from({length:n+2},r);return x=>{const f=x*n,i=Math.floor(f),u=f-i,w=u*u*(3-2*u);return p[i]*(1-w)+p[i+1]*w;};};
+  const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+  const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+  const rgb=(c,a=1)=>`rgba(${c.map(Math.round).join(',')},${a})`;
+  const off=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;};
+  // צבעי השמיים לפי גובה השמש (e): למעלה / באמצע / באופק
+  const SKY=[[-.35,'#03061A','#0A1233','#1A1B3A'],[-.15,'#0B1638','#2C2F5E','#8A5672'],[-.03,'#1A2D5E','#6A6C9A','#F08A62'],
+             [.08,'#2B4F8C','#A7A2C0','#FFB878'],[.3,'#3D74B5','#A9C8E6','#FBD3A2'],[1,'#4A8ACB','#A8D0EE','#EAF0F0']];
+  function skyAt(e){let i=0;while(i<SKY.length-2&&e>SKY[i+1][0])i++;const a=SKY[i],b=SKY[i+1],t=clamp((e-a[0])/(b[0]-a[0]));
+    return [1,2,3].map(k=>mix(hex(a[k]),hex(b[k]),t));}
+  function setup(){
+    cv=$('mcv');ctx=cv.getContext('2d');const sc=Math.min(1,960/innerWidth);   // רזולוציה מתונה – מהיר גם בטלוויזיות חלשות
+    W=cv.width=Math.round(innerWidth*sc);H=cv.height=Math.round(innerHeight*sc);HOR=H*.7;
+    const r=rng(11);
+    // 4 רכסי הרים (צורות קבועות, רק הצבע משתנה)
+    ridges=[0,1,2,3].map(k=>{const n=[noise(r,3+k),noise(r,8+k*3),noise(r,26+k*8)],base=HOR+H*(k*.055-.02),amp=H*(.075+k*.018),P=new Path2D(),L=new Path2D();
+      P.moveTo(0,H);for(let x=0;x<=W+4;x+=3){const u=x/W,y=base-amp*(n[0](u)*.62+n[1](u)*.28+n[2](u)*.1);P.lineTo(x,y);x?L.lineTo(x,y):L.moveTo(x,y);}P.lineTo(W,H);P.closePath();return{P,L};});
+    // עננים: צורה מטושטשת מצוירת פעם אחת, וצובעים אותה רק כשהאור משתנה
+    clouds=Array.from({length:8},()=>{const w=W*(.16+r()*.26),h=H*(.03+r()*.035),pad=h*.8,shape=off(w+pad*2,h+pad*2),c=shape.getContext('2d');
+      c.filter=`blur(${Math.max(2,Math.round(h*.22))}px)`;c.fillStyle='#fff';
+      for(let i=0;i<8;i++){c.beginPath();c.ellipse(pad+w*(.15+r()*.7),pad+h*(.35+r()*.35),w*(.12+r()*.2),h*(.22+r()*.25),0,0,Math.PI*2);c.fill();}
+      return{x:r()*W*1.4-W*.2,y:H*(.08+r()*.36),sp:.5+r(),shape,tint:off(shape.width,shape.height),key:''};});
+    starsA=Array.from({length:160},()=>[r()*W,r()*HOR*.95,r()*1.1+.3,r()*6.28]);
+    // קרני אור – מצוירות פעם אחת
+    const RR=Math.round(H*.9);rays=off(RR*2,RR*2);const rc=rays.getContext('2d');rc.translate(RR,RR);
+    for(let i=0;i<18;i++){const a=i/18*Math.PI*2,wd=.03+.02*Math.sin(i*7.3),q=rc.createRadialGradient(0,0,0,0,0,RR);
+      q.addColorStop(0,'rgba(255,225,180,.9)');q.addColorStop(1,'rgba(255,225,180,0)');rc.fillStyle=q;rc.beginPath();rc.moveTo(0,0);rc.arc(0,0,RR,a-wd,a+wd);rc.closePath();rc.fill();}
+  }
+  function tintCloud(c,topc,under){
+    const key=topc.concat(under).map(v=>v>>3).join();if(key===c.key)return;c.key=key;
+    const t=c.tint.getContext('2d'),w=c.tint.width,h=c.tint.height;t.globalCompositeOperation='source-over';t.clearRect(0,0,w,h);t.drawImage(c.shape,0,0);
+    t.globalCompositeOperation='source-in';const q=t.createLinearGradient(0,h*.25,0,h*.8);q.addColorStop(0,rgb(topc));q.addColorStop(1,rgb(under));t.fillStyle=q;t.fillRect(0,0,w,h);
+  }
+  function draw(now){
+    const k=clamp((now-t0)/DUR),ease=k*k*(3-2*k),e=-.35+1.15*ease;          // גובה השמש
+    const [top,mid,hor]=skyAt(e);
+    ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+    // שמיים
+    let g=ctx.createLinearGradient(0,0,0,HOR);g.addColorStop(0,rgb(top));g.addColorStop(.55,rgb(mid));g.addColorStop(1,rgb(hor));ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // כוכבים שנעלמים
+    const sa=clamp(-e*3.2);if(sa>0){ctx.fillStyle='#fff';for(const [x,y,r,p] of starsA){ctx.globalAlpha=sa*(.55+.45*Math.sin(now/900+p))*clamp(1-y/HOR*1.1);ctx.fillRect(x,y,r,r);}ctx.globalAlpha=1;}
+    // השמש: מקום וצבע
+    const sx=W*.5,sy=HOR+H*.05-(HOR-H*.17)*clamp((e+.06)/.94),R=H*.038,low=clamp(1-e/.35);
+    const sun=mix(hex('#FFF4D6'),hex('#FF6A2B'),low*low*.95),vis=clamp((e+.2)/.25);
+    ctx.globalCompositeOperation='lighter';
+    const gl=(rad,a)=>{if(a<=0)return;const q=ctx.createRadialGradient(sx,sy,0,sx,sy,rad);q.addColorStop(0,rgb(sun,a));q.addColorStop(.35,rgb(mix(sun,hex('#FF8C5A'),.5),a*.35));q.addColorStop(1,rgb(sun,0));ctx.fillStyle=q;ctx.fillRect(sx-rad,sy-rad,rad*2,rad*2);};
+    const gk=vis*(.35+.65*low);gl(H*.9,.3*gk);gl(H*.3,.32*gk);gl(R*3.5,.5*vis);
+    // קרני אור עדינות
+    if(e>-.05&&e<.7){ctx.globalAlpha=.07*clamp((e+.05)/.1)*clamp((.7-e)/.4);ctx.save();ctx.translate(sx,sy);ctx.rotate(now/60000);ctx.drawImage(rays,-rays.width/2,-rays.height/2);ctx.restore();ctx.globalAlpha=1;}
+    ctx.globalCompositeOperation='source-over';
+    // עננים
+    const lit=clamp((e+.12)/.5),under=mix(mix(hex('#3A3352'),hex('#FF8F6B'),clamp((e+.2)/.2)),hex('#FFF6EC'),clamp((e-.08)/.4)),topc=mix(hex('#1E2240'),hex('#E9EEF6'),lit);
+    const dt=last?Math.min(100,now-last):16;
+    for(const c of clouds){c.x+=c.sp*(W/150000)*dt;if(c.x>W)c.x=-c.tint.width;tintCloud(c,topc,under);ctx.globalAlpha=.85;ctx.drawImage(c.tint,c.x,c.y);}
+    ctx.globalAlpha=1;
+    // דיסקת השמש (משוטחת מעט ליד האופק)
+    const q=ctx.createRadialGradient(sx-R*.25,sy-R*.25,R*.1,sx,sy,R);q.addColorStop(0,'#FFFFFF');q.addColorStop(.6,rgb(mix(sun,hex('#FFFFFF'),.55)));q.addColorStop(1,rgb(sun));
+    ctx.fillStyle=q;ctx.beginPath();ctx.ellipse(sx,sy,R,R*(1-.12*low),0,0,Math.PI*2);ctx.fill();
+    // ערפל אופק
+    g=ctx.createLinearGradient(0,HOR-H*.12,0,HOR+H*.06);g.addColorStop(0,rgb(hor,0));g.addColorStop(1,rgb(hor,.55));ctx.fillStyle=g;ctx.fillRect(0,HOR-H*.12,W,H*.2);
+    // הרים: צבע לילה ← צבע יום; הרחוקים מתערבבים עם אור האופק
+    const dayC=['#9FB0C6','#8C9B8C','#6F7E5C','#4F5C3E'].map(hex),nightC=['#2A2440','#1E1B30','#151422','#0D0C16'].map(hex),haze=[.55,.38,.2,.06];
+    ridges.forEach(({P,L},i)=>{let c=mix(nightC[i],dayC[i],clamp((e+.08)/.6));c=mix(c,hor,haze[i]*(.6+.4*low));ctx.fillStyle=rgb(c);ctx.fill(P);
+      const rim=clamp(1-Math.abs(e-.02)/.18)*(.4-i*.08);if(rim>0){ctx.strokeStyle=rgb(sun,rim);ctx.lineWidth=1.2;ctx.stroke(L);}});
+    // הצללה עדינה בתחתית
+    g=ctx.createLinearGradient(0,H*.8,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(10,8,20,${.35-.2*lit})`);ctx.fillStyle=g;ctx.fillRect(0,H*.8,W,H*.2);
+    last=now;
+  }
+  // בזמן הזריחה – אנימציה חלקה; אחריה – ציור איטי (רק העננים זזים) כדי לא להעמיס
+  function loop(now){const done=now-t0>DUR+500;if(!done||now-lastDraw>500){draw(now);lastDraw=now;}raf=requestAnimationFrame(loop);}
+  return{
+    start(){cancelAnimationFrame(raf);setup();t0=performance.now();last=0;lastDraw=0;raf=requestAnimationFrame(loop);
+      // יש סרטון זריחה אמיתי? מנגנים אותו מעל הציור (הציור נשאר מתחת אם הסרטון לא נטען)
+      const v=$('mvid'),m=$('morning'),src=(D&&D.S.sunriseVideo)||CFG.SUNRISE_VIDEO||'sunrise.mp4';m.classList.remove('vid');
+      v.onerror=()=>m.classList.remove('vid');
+      v.oncanplay=()=>{m.classList.add('vid');v.play().catch(()=>m.classList.remove('vid'));};
+      v.onended=()=>{try{v.pause();}catch(e){}};            // נשאר על התמונה האחרונה
+      v.preload='auto';v.src=src;try{v.currentTime=0;}catch(e){}v.load();},
+    stop(){cancelAnimationFrame(raf);raf=0;const v=$('mvid');try{v.pause();}catch(e){}$('morning').classList.remove('vid');},
+    resize(){if(raf){const k=performance.now()-t0;setup();t0=performance.now()-k;}}
+  };
+})();
+addEventListener('resize',()=>Dawn.resize());
 
 /* ---------- שפה ---------- */
 function applyLang(l){
@@ -804,14 +901,17 @@ let quoteIdx=0;
 function renderAll(){
   const now=new Date();D=derive(now);
   if(!LANGS.includes(LANG)){langIdx=0;applyLang(LANGS[0]);D=derive(now);}
-  const morning=inMorning(now,D.S),night=!morning&&inNight(now,D.S);
+  const night=inNight(now,D.S),morning=!night&&inMorning(now,D.S);
   if(night||morning){const nl=LANGS[Math.floor(Date.now()/20000)%LANGS.length];if(nl!==LANG){applyLang(nl);D=derive(now);}}
   renderSky(now);renderNow();renderMM();renderSched();renderTeam();renderBoard();renderVisit();
   $('quote').textContent=D.quotes[quoteIdx%D.quotes.length];
   $('langs').innerHTML=LANGS.length>1?LANGS.map(l=>`<b class="${l===LANG?'on':''}">${{he:'עברית',ar:'عربي',en:'English'}[l]}</b>`).join(''):'';
   $('demo').textContent=mode?t(mode):'';
   $('night').hidden=!night;
-  $('morning').hidden=!morning;
+  const mEl=$('morning');
+  if(morning&&mEl.hidden){mEl.classList.remove('dawn');void mEl.offsetWidth;mEl.classList.add('dawn');mEl.hidden=false;Dawn.start();}  // זריחה בכל כניסה
+  if(!morning&&!mEl.hidden)Dawn.stop();
+  mEl.hidden=!morning;
   if(morning){
     $('mgt').textContent=t('morningT');
     $('mmsg').textContent=tr(D.S,'morningMessage')||t('morningMsg');
